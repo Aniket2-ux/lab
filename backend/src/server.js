@@ -4,88 +4,120 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 
-const sequelize = require("./db"); // your existing Sequelize instance
-
-// ---------- Register models ----------
-require("./models/User");
-require("./models/Client");
-require("./models/Service");
-require("./models/Medicine");
-require("./models/LabTest");
-require("./models/prescription");
-
-// Optional: Bill / BillItem (if they exist)
-try {
-  require("./models/Bill");
-  require("./models/BillItem");
-} catch (e) {
-  console.warn("Bill/BillItem models not found, skipping…");
-}
-
-// ---------- Import routes ----------
-const authRoutes = require("./routes/auth");
-const clientRoutes = require("./routes/clients");
-const billingRoutes = require("./routes/billing");
-const servicesRoutes = require("./routes/services");
-const medicinesRoutes = require("./routes/medicines");
-const labRoutes = require("./routes/lab");
-const prescriptionsRoutes = require("./routes/prescriptions");
-const revenueRoutes = require("./routes/revenue"); // 👈 new
+const sequelize = require("./db");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ---------- Middlewares ----------
+/* =========================
+   MIDDLEWARE
+========================= */
 app.use(cors());
 app.use(express.json());
 
-// ---------- Health check (for dashboard) ----------
+/* =========================
+   REGISTER MODELS (ORDER MATTERS)
+========================= */
+try { require("./models/User"); } catch {}
+try { require("./models/Client"); } catch {}
+try { require("./models/Service"); } catch {}
+try { require("./models/Medicine"); } catch {}
+try { require("./models/LabTest"); } catch {}
+try { require("./models/prescription"); } catch {}
+
+// Billing + Lab (REQUIRED)
+require("./models/Bill");
+require("./models/BillItem");
+require("./models/LabRecord"); // 🔴 REQUIRED FOR LAB SAVE
+
+/* =========================
+   IMPORT ROUTES
+========================= */
+const authRoutes = safeRequire("./routes/auth");
+const clientRoutes = safeRequire("./routes/clients");
+const servicesRoutes = safeRequire("./routes/services");
+const medicinesRoutes = safeRequire("./routes/medicines");
+const prescriptionsRoutes = safeRequire("./routes/prescriptions");
+const revenueRoutes = safeRequire("./routes/revenue");
+const reportRoutes = safeRequire("./routes/reportRoutes");
+const dashboardRoutes = safeRequire("./routes/dashboardRoutes");
+
+// IMPORTANT ROUTES
+const billingRoutes = require("./routes/billing"); // 🔴 ONLY THIS
+const labRoutes = require("./routes/lab");          // 🔴 ONLY THIS
+
+// Optional settings
+const settingsRoutes = safeRequire("./routes/settings");
+
+/* =========================
+   MOUNT ROUTES
+========================= */
+if (authRoutes) app.use("/api/auth", authRoutes);
+if (clientRoutes) app.use("/api/clients", clientRoutes);
+if (servicesRoutes) app.use("/api/services", servicesRoutes);
+if (medicinesRoutes) app.use("/api/medicines", medicinesRoutes);
+if (prescriptionsRoutes) app.use("/api/prescriptions", prescriptionsRoutes);
+if (revenueRoutes) app.use("/api/revenue", revenueRoutes);
+if (reportRoutes) app.use("/api/reports", reportRoutes);
+if (dashboardRoutes) app.use("/api/dashboard", dashboardRoutes);
+if (settingsRoutes) app.use("/api/settings", settingsRoutes);
+
+// 🔴 SINGLE SOURCE OF TRUTH
+app.use("/api/billing", billingRoutes);
+app.use("/api/lab", labRoutes);
+
+/* =========================
+   HEALTH CHECK
+========================= */
 app.get("/api/health", (req, res) => {
-  res.json({
-    status: "ok",
-    message: "Backend is working",
-  });
+  res.json({ status: "ok", message: "Backend is working" });
 });
 
-// ---------- Route groups ----------
-app.use("/api/auth", authRoutes);
-
-app.use("/api/clients", clientRoutes);
-app.use("/api/billing", billingRoutes);
-app.use("/api/services", servicesRoutes);
-app.use("/api/medicines", medicinesRoutes);
-app.use("/api/lab", labRoutes);
-app.use("/api/prescriptions", prescriptionsRoutes);
-app.use("/api/revenue", revenueRoutes);
-
-// Optional: 404 handler for unknown /api routes
+/* =========================
+   API 404
+========================= */
 app.use("/api", (req, res) => {
   res.status(404).json({ error: "API route not found" });
 });
 
-// Root route (for quick manual check)
+/* =========================
+   ROOT
+========================= */
 app.get("/", (req, res) => {
   res.send("Okhati clone backend running");
 });
 
-// ---------- Start server *after* DB is OK ----------
+/* =========================
+   START SERVER
+========================= */
 async function start() {
   try {
     console.log("🔌 Connecting to database...");
     await sequelize.authenticate();
-    console.log("✅ DB connection OK");
+    console.log("✅ DB connected");
 
-    // Sync all defined models (use { alter: true } only when needed)
     await sequelize.sync();
     console.log("✅ DB synced");
 
-    app.listen(PORT, () => {
-      console.log(`🚀 Backend server running on port ${PORT}`);
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`🚀 Backend running at http://localhost:${PORT}`);
     });
   } catch (err) {
-    console.error("❌ Failed to start server", err);
+    console.error("❌ Backend failed to start", err);
     process.exit(1);
   }
 }
 
 start();
+
+/* =========================
+   SAFE REQUIRE HELPER
+========================= */
+function safeRequire(path) {
+  try {
+    return require(path);
+  } catch (e) {
+    console.warn(`⚠️ Optional route not loaded: ${path}`);
+    return null;
+  }
+}

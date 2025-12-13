@@ -1,76 +1,89 @@
-// backend/src/routes/billing.js
 const express = require("express");
 const { Op } = require("sequelize");
+
 const Bill = require("../models/Bill");
 const BillItem = require("../models/BillItem");
+const LabRecord = require("../models/LabRecord");
 
 const router = express.Router();
 
 /**
  * POST /api/billing
- * Creates a bill (draft or finalized).
+ * Create bill + bill items + lab record (if lab items exist)
  */
 router.post("/", async (req, res) => {
   try {
-    console.log("📥 /api/billing body:", JSON.stringify(req.body, null, 2));
-
     const {
       clientName,
       issueDate,
       items = [],
-      grossTotal,
-      discount,
-      taxableAmount,
-      roundingOff,
-      totalAmount,
+      grossTotal = 0,
+      discount = 0,
+      taxableAmount = 0,
+      roundingOff = 0,
+      totalAmount = 0,
       paymentMethod,
       remarks,
-      status = "draft",
+      status = "draft", // IMPORTANT
     } = req.body;
 
     if (!clientName || !issueDate) {
-      return res
-        .status(400)
-        .json({ error: "clientName and issueDate are required" });
+      return res.status(400).json({
+        error: "clientName and issueDate are required",
+      });
     }
 
-    // Ensure numbers are numbers (Postgres DECIMAL will choke on NaN)
-    const safeGrossTotal = Number(grossTotal) || 0;
-    const safeDiscount = Number(discount) || 0;
-    const safeTaxableAmount = Number(taxableAmount) || 0;
-    const safeRoundingOff = Number(roundingOff) || 0;
-    const safeTotalAmount = Number(totalAmount) || 0;
-
+    // 1️⃣ Create Bill
     const bill = await Bill.create({
       clientName,
       issueDate,
-      grossTotal: safeGrossTotal,
-      discount: safeDiscount,
-      taxableAmount: safeTaxableAmount,
-      roundingOff: safeRoundingOff,
-      totalAmount: safeTotalAmount,
+      grossTotal: Number(grossTotal) || 0,
+      discount: Number(discount) || 0,
+      taxableAmount: Number(taxableAmount) || 0,
+      roundingOff: Number(roundingOff) || 0,
+      totalAmount: Number(totalAmount) || 0,
       paymentMethod: paymentMethod || null,
       remarks: remarks || null,
       status,
     });
 
+    // 2️⃣ Create Bill Items
     if (Array.isArray(items) && items.length > 0) {
-      const rows = items.map((it) => ({
-        billId: bill.id,
-        description: it.description || "",
-        dept: it.dept || null,
-        qty: Number(it.qty) || 1,
-        unit: it.unit || "pcs",
-        rate: Number(it.rate) || 0,
-        amount: Number(it.amount) || 0,
-      }));
-      await BillItem.bulkCreate(rows);
+      await BillItem.bulkCreate(
+        items.map((it) => ({
+          billId: bill.id,
+          description: it.description || "",
+          dept: it.dept || null,
+          qty: Number(it.qty) || 1,
+          unit: it.unit || "pcs",
+          rate: Number(it.rate) || 0,
+          amount:
+            Number(it.amount) ||
+            (Number(it.qty || 0) * Number(it.rate || 0)),
+        }))
+      );
     }
 
-    console.log("✅ Bill created with id:", bill.id);
-    res.status(201).json({ id: bill.id });
+    // 3️⃣ CREATE LAB RECORD (ONLY IF FINALIZED + LAB ITEMS)
+    const labItems = items.filter((i) => i.dept === "Lab");
+
+    if (status === "finalized" && labItems.length > 0) {
+      await LabRecord.create({
+        billId: bill.id,
+        clientName,
+        testNames: labItems.map((i) => i.description).join(", "),
+        status: "Ordered",
+      });
+
+      console.log("🧪 Lab record created for bill:", bill.id);
+    }
+
+    res.status(201).json({
+      success: true,
+      billId: bill.id,
+    });
   } catch (err) {
-    console.error("❌ Failed to create bill", err);
+    console.error("❌ Billing failed:", err);
     res.status(500).json({
       error: "Failed to create bill",
       details: err.message,
@@ -80,16 +93,16 @@ router.post("/", async (req, res) => {
 
 /**
  * GET /api/billing/summary
- * -> { todaySales, totalSales }
  */
 router.get("/summary", async (_req, res) => {
   try {
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
+
     const todayEnd = new Date();
     todayEnd.setHours(23, 59, 59, 999);
 
-    const [todaySalesRaw, totalSalesRaw] = await Promise.all([
+    const [todaySales, totalSales] = await Promise.all([
       Bill.sum("totalAmount", {
         where: {
           status: "finalized",
@@ -101,13 +114,12 @@ router.get("/summary", async (_req, res) => {
       }),
     ]);
 
-    const todaySales = Number(todaySalesRaw || 0);
-    const totalSales = Number(totalSalesRaw || 0);
-
-    res.json({ todaySales, totalSales });
+    res.json({
+      todaySales: Number(todaySales || 0),
+      totalSales: Number(totalSales || 0),
+    });
   } catch (err) {
-    console.error("❌ Failed to get billing summary", err);
-    res.status(500).json({ error: "Failed to get billing summary" });
+    res.status(500).json({ error: "Failed to get summary" });
   }
 });
 

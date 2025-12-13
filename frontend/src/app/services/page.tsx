@@ -1,40 +1,5 @@
 // frontend/src/app/services/page.tsx
 "use client";
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 import { useEffect, useState } from "react";
 import type React from "react";
 import Sidebar from "../../components/Sidebar";

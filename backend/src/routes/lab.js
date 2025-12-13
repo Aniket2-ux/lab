@@ -1,32 +1,44 @@
-// backend/src/routes/lab.js
 const express = require("express");
-const LabTest = require("../models/LabTest");
+const Bill = require("../models/Bill");
+const BillItem = require("../models/BillItem");
 
 const router = express.Router();
 
 /**
- * GET /api/lab
- * Returns all lab tests ordered by newest first
+ * GET /api/lab/records
+ * Show lab records from finalized bills
  */
-router.get("/", async (req, res) => {
+router.get("/records", async (req, res) => {
   try {
-    const tests = await LabTest.findAll({
-      order: [["id", "DESC"]],
+    const bills = await Bill.findAll({
+      where: { status: "finalized" },
+      include: [
+        {
+          model: BillItem,
+          as: "items",
+          where: { dept: "Lab" },
+          required: true,
+        },
+      ],
+      order: [["createdAt", "DESC"]],
     });
 
-    res.json(
-      tests.map((t) => ({
-        id: t.id,
-        clientName: t.clientName,
-        testName: t.testName,
-        orderedOn: t.orderedOn,
-        status: t.status,
-        tat: t.tat,
-      }))
-    );
+    const records = bills.map((bill) => ({
+      id: bill.id,
+      billNumber: `LAB-${bill.id}`,
+      clientName: bill.clientName,
+      issueDate: bill.issueDate,
+      status: "Ordered",
+      items: bill.items,
+      totalAmount: bill.totalAmount,
+      createdAt: bill.createdAt,
+      updatedAt: bill.updatedAt,
+    }));
+
+    res.json(records);
   } catch (err) {
-    console.error("Failed to fetch lab tests", err);
-    res.status(500).json({ error: "Failed to fetch lab tests" });
+    console.error("❌ Lab fetch failed", err);
+    res.status(500).json({ error: "Failed to load lab records" });
   }
 });
 

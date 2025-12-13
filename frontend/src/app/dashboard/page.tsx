@@ -13,7 +13,7 @@ type DateInfo = {
 
 type CardProps = {
   title: string;
-  value: string;
+  value: string | number;
   icon?: string;
 };
 
@@ -22,6 +22,7 @@ type Stats = {
   totalPrescriptions: number;
   revenueToday: number;
   revenueTotal: number;
+  invoiceCount: number;
 };
 
 const API_BASE = "http://localhost:5000";
@@ -36,6 +37,7 @@ export default function DashboardPage() {
     totalPrescriptions: 0,
     revenueToday: 0,
     revenueTotal: 0,
+    invoiceCount: 0,
   });
 
   // protect route (require token)
@@ -45,37 +47,64 @@ export default function DashboardPage() {
     if (!token) router.push("/");
   }, [router]);
 
-  // load backend health + stats
+  // load backend health + stats (prescription counts + billing summary)
   useEffect(() => {
     const load = async () => {
       try {
-        const [healthRes, presCountRes, revenueRes] = await Promise.all([
+        const [healthRes, presCountRes, billingRes] = await Promise.all([
           fetch(`${API_BASE}/api/health`),
           fetch(`${API_BASE}/api/prescriptions/count`),
-          fetch(`${API_BASE}/api/revenue`),
+          // billing summary endpoint
+          fetch(`${API_BASE}/api/billing/summary`),
         ]);
 
         // health
+        if (!healthRes.ok) {
+          const text = await healthRes.text().catch(() => "");
+          throw new Error("Health check failed: " + (text || healthRes.status));
+        }
         const healthData = await healthRes.json();
         setHealth(healthData.message || "OK");
 
         // prescriptions count
-        const presData = await presCountRes.json();
-        const todayPrescriptions = presData.todayCount || 0;
-        const totalPrescriptions = presData.totalCount || 0;
+        if (!presCountRes.ok) {
+          const text = await presCountRes.text().catch(() => "");
+          console.warn("Pres count fetch failed:", text || presCountRes.status);
+        } else {
+          const presData = await presCountRes.json();
+          const todayPrescriptions = presData.todayCount ?? 0;
+          const totalPrescriptions = presData.totalCount ?? 0;
+          setStats((s) => ({ ...s, todayPrescriptions, totalPrescriptions }));
+        }
 
-        // revenue
-        const revenueData = await revenueRes.json();
-        const revenueToday = revenueData.today || 0;
-        const revenueTotal = revenueData.total || 0;
+        // billing summary (supports multiple response shapes)
+        if (!billingRes.ok) {
+          const text = await billingRes.text().catch(() => "");
+          console.warn("Billing summary fetch failed:", text || billingRes.status);
+        } else {
+          const summaryData = await billingRes.json();
 
-        setStats({
-          todayPrescriptions,
-          totalPrescriptions,
-          revenueToday,
-          revenueTotal,
-        });
-      } catch (err) {
+          // support various response shapes
+          const revenueToday =
+            summaryData.todaySales ??
+            summaryData.todayRevenue ??
+            summaryData.todayRevenueAmount ??
+            0;
+          const revenueTotal =
+            summaryData.totalSales ??
+            summaryData.totalRevenue ??
+            summaryData.totalRevenueAmount ??
+            0;
+          const invoiceCount = summaryData.invoiceCount ?? summaryData.count ?? 0;
+
+          setStats((s) => ({
+            ...s,
+            revenueToday: Number(revenueToday) || 0,
+            revenueTotal: Number(revenueTotal) || 0,
+            invoiceCount: Number(invoiceCount) || 0,
+          }));
+        }
+      } catch (err: any) {
         console.error("Error loading dashboard data:", err);
         setHealth("Backend not reachable");
       }
@@ -84,7 +113,7 @@ export default function DashboardPage() {
     load();
   }, []);
 
-  // date/time
+  // date/time — populate only on client after mount to avoid SSR hydration mismatch
   useEffect(() => {
     const now = new Date();
     const formattedDate = now.toLocaleDateString("en-GB", {
@@ -106,7 +135,7 @@ export default function DashboardPage() {
     <div
       style={{
         display: "flex",
-        height: "100vh", // sidebar + main fill screen
+        height: "100vh",
         overflow: "hidden",
       }}
     >
@@ -117,10 +146,9 @@ export default function DashboardPage() {
           flex: 1,
           padding: 24,
           background: "#f5f7fb",
-          overflowY: "auto", // main scroll area
+          overflowY: "auto",
         }}
       >
-        {/* Header with top bar + profile dropdown */}
         <HeaderBar pageTitle="Dashboard" />
 
         {/* Top bar (date + create bill) */}
@@ -137,24 +165,61 @@ export default function DashboardPage() {
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
-            <div>
-              <div
-                style={{
-                  fontSize: 14,
-                  fontWeight: 600,
-                  textTransform: "uppercase",
-                }}
-              >
-                {dateInfo?.formattedDate || ""}
-              </div>
-              <div style={{ fontSize: 12, color: "#777" }}>
-                {dateInfo?.formattedSubDate || ""}
-              </div>
-            </div>
-            <div style={{ fontSize: 12, color: "#777" }}>
-              <span style={{ fontWeight: 600 }}>Last Updated: </span>
-              <span>{dateInfo?.time || ""}</span>
-            </div>
+            {/* deterministic placeholder when dateInfo is null (SSR) */}
+            {dateInfo ? (
+              <>
+                <div>
+                  <div
+                    style={{
+                      fontSize: 14,
+                      fontWeight: 600,
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    {dateInfo.formattedDate}
+                  </div>
+                  <div style={{ fontSize: 12, color: "#777" }}>
+                    {dateInfo.formattedSubDate}
+                  </div>
+                </div>
+                <div style={{ fontSize: 12, color: "#777" }}>
+                  <span style={{ fontWeight: 600 }}>Last Updated: </span>
+                  <span>{dateInfo.time}</span>
+                </div>
+              </>
+            ) : (
+              <>
+                <div style={{ minWidth: 260 }}>
+                  <div
+                    style={{
+                      height: 18,
+                      width: 260,
+                      background: "#f3f4f6",
+                      borderRadius: 4,
+                    }}
+                  />
+                  <div
+                    style={{
+                      height: 12,
+                      width: 160,
+                      marginTop: 6,
+                      background: "#f3f4f6",
+                      borderRadius: 4,
+                    }}
+                  />
+                </div>
+                <div style={{ fontSize: 12, color: "#777" }}>
+                  <div
+                    style={{
+                      height: 12,
+                      width: 80,
+                      background: "#f3f4f6",
+                      borderRadius: 4,
+                    }}
+                  />
+                </div>
+              </>
+            )}
           </div>
 
           <button
@@ -189,12 +254,12 @@ export default function DashboardPage() {
             <div style={{ display: "flex", gap: 16 }}>
               <DashboardCard
                 title="Prescription Count (today)"
-                value={stats.todayPrescriptions.toString()}
+                value={stats.todayPrescriptions}
                 icon="💊"
               />
               <DashboardCard
                 title="Total Entries"
-                value={stats.totalPrescriptions.toString()}
+                value={stats.totalPrescriptions}
                 icon="🔁"
               />
             </div>
@@ -465,7 +530,9 @@ function DashboardCard({ title, value, icon }: CardProps) {
       <div style={{ fontSize: 13, color: "#555", textAlign: "center" }}>
         {title}
       </div>
-      <div style={{ marginTop: 4, fontSize: 18, fontWeight: 700 }}>{value}</div>
+      <div style={{ marginTop: 4, fontSize: 18, fontWeight: 700 }}>
+        {String(value)}
+      </div>
     </div>
   );
 }
