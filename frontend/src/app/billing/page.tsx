@@ -367,10 +367,22 @@ useEffect(() => {
       .slice((page - 1) * pageSize, page * pageSize);
 
     // derived values
-    const grossTotal = items.reduce((sum, it) => sum + (Number(it.qty) || 0) * (Number(it.rate) || 0), 0);
-    const discountAmount = discountMode === "%" ? (grossTotal * (Number(discountValue) || 0)) / 100 : Number(discountValue) || 0;
-    const taxableAmount = Math.max(grossTotal - discountAmount, 0);
-    const totalAmount = Math.max(taxableAmount + (Number(roundingOff) || 0), 0);
+    
+    const grossTotal = items.reduce((sum, it) => sum + (Number(it.qty) || 0) * (Number(it.rate) || 0),0);
+    const discountAmount = discountMode === "%" ? (grossTotal * (Number(discountValue) || 0)) / 100
+    : Number(discountValue) || 0;
+// referral commission
+     const selectedReferrer = referrers.find((r) => r.name === referrer);
+const referralRate = selectedReferrer?.rate || 0;
+const referralCommission = (grossTotal * referralRate) / 100;
+
+const taxableAmount = Math.max(
+  grossTotal - discountAmount - referralCommission,
+  0
+);
+
+const totalAmount = Math.max(taxableAmount + (Number(roundingOff) || 0), 0);
+
     const changeAmount = paidAll ? Math.max((Number(tenderAmount) || 0) - totalAmount, 0) : 0;
     const totalInWords = totalAmount === 0 ? "Zero rupees" : `Approximately Rs. ${totalAmount.toFixed(2)}`;
     // referral commission calculation
@@ -1191,13 +1203,18 @@ useEffect(() => {
             {/* Modals */}
             <CreateClientFromBilling open={createClientOpen} onClose={() => setCreateClientOpen(false)} onClientCreated={handleClientCreated} />
             <CreateReferrerModal open={referrerModalOpen} onClose={() => setReferrerModalOpen(false)}
-            onReferrerCreated={(name) => {
-             setReferrer(name);
+            onReferrerCreated={(ref) => {
+            setReferrer(ref.name);
             setReferrers((prev) => [
-            { id: `local-${Date.now()}`, name },
-            ...prev,
-          ]);
-          }}
+            {
+            id: ref.id || `local-${Date.now()}`,
+            name: ref.name,
+             rate: Number(ref.rate) || 0,
+            },
+             ...prev,
+            ]);
+           }}
+
           />
   
 

@@ -78,7 +78,6 @@ type Props = {
   onReferrerCreated: (referrer: Referrer) => void;
 };
 
-
 /* ================== COMPONENT ================== */
 export default function CreateReferrerModal({
   open,
@@ -96,52 +95,51 @@ export default function CreateReferrerModal({
   if (!open) return null;
 
   const handleSave = async () => {
-  if (!name.trim()) {
-    alert("Name is required");
-    return;
-  }
+    if (!name.trim()) {
+      alert("Name is required");
+      return;
+    }
 
-  const referrerObj = {
-    id: `local-${Date.now()}`,
-    name,
-    mobile,
-    email,
-    address,
-    tds,
-    rate: Number(rate) || 0,
+    const referrerObj = {
+      id: `local_${Date.now()}`,
+      name,
+      mobile,
+      email,
+      address,
+      tds,
+      rate: Number(rate) || 0,
+    };
+
+    try {
+      setLoading(true);
+
+      const res = await fetch("http://localhost:5000/api/referrers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(referrerObj),
+      });
+
+      if (!res.ok) throw new Error();
+
+      // optional: const data = await res.json();
+    } catch {
+      // LOCAL STORAGE FALLBACK
+      const raw = localStorage.getItem("okhati_referrers");
+      const arr = raw ? JSON.parse(raw) : [];
+      arr.unshift(referrerObj);
+      localStorage.setItem("okhati_referrers", JSON.stringify(arr));
+    } finally {
+      // ✅ SINGLE, CORRECT CALLBACK
+      onReferrerCreated({
+        id: referrerObj.id,
+        name: referrerObj.name,
+        rate: referrerObj.rate,
+      });
+
+      setLoading(false);
+      onClose();
+    }
   };
-
-  try {
-    setLoading(true);
-
-    const res = await fetch("http://localhost:5000/api/referrers", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(referrerObj),
-    });
-
-    if (!res.ok) throw new Error();
-
-    const data = await res.json();
-    onReferrerCreated({
-  id: data.id,
-  name: data.name,
-  rate: data.rate,
-});
-
-  } catch {
-    // ✅ LOCAL STORAGE FALLBACK
-    const raw = localStorage.getItem("okhati_referrers");
-    const arr = raw ? JSON.parse(raw) : [];
-    arr.unshift(referrerObj);
-    localStorage.setItem("okhati_referrers", JSON.stringify(arr));
-
-    onReferrerCreated(referrerObj.name);
-  } finally {
-    setLoading(false);
-    onClose();
-  }
-};
 
   return (
     <div style={backdrop}>
@@ -151,32 +149,58 @@ export default function CreateReferrerModal({
         <div style={formGrid}>
           <div>
             <label style={label}>Name *</label>
-            <input style={input} value={name} onChange={(e) => setName(e.target.value)} />
+            <input
+              style={input}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
           </div>
 
           <div>
             <label style={label}>Mobile</label>
-            <input style={input} value={mobile} onChange={(e) => setMobile(e.target.value)} />
+            <input
+              style={input}
+              value={mobile}
+              onChange={(e) => setMobile(e.target.value)}
+            />
           </div>
 
           <div>
             <label style={label}>Email</label>
-            <input style={input} value={email} onChange={(e) => setEmail(e.target.value)} />
+            <input
+              style={input}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
           </div>
 
           <div>
             <label style={label}>Address</label>
-            <input style={input} value={address} onChange={(e) => setAddress(e.target.value)} />
+            <input
+              style={input}
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+            />
           </div>
 
           <div>
             <label style={label}>TDS %</label>
-            <input type="number" style={input} value={tds} onChange={(e) => setTds(e.target.value)} />
+            <input
+              type="number"
+              style={input}
+              value={tds}
+              onChange={(e) => setTds(e.target.value)}
+            />
           </div>
 
           <div>
             <label style={label}>Rate</label>
-            <input type="number" style={input} value={rate} onChange={(e) => setRate(e.target.value)} />
+            <input
+              type="number"
+              style={input}
+              value={rate}
+              onChange={(e) => setRate(e.target.value)}
+            />
           </div>
         </div>
 
