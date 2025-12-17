@@ -25,7 +25,13 @@ type Stats = {
   invoiceCount: number;
 };
 
-const API_BASE = "http://localhost:5000";
+const API_BASE =  process.env.NEXT_PUBLIC_API_BASE || "http://localhost:5000";
+const getToken = () => {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem("token");
+};
+
+
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -41,22 +47,35 @@ export default function DashboardPage() {
   });
 
   // protect route (require token)
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const token = localStorage.getItem("token");
-    if (!token) router.push("/");
-  }, [router]);
+ useEffect(() => {
+  const token = getToken();
+  if (!token) {
+    router.replace("/");
+    return;
+  }
+}, [router]);
+
 
   // load backend health + stats (prescription counts + billing summary)
   useEffect(() => {
+    const token = getToken();
+     if (!token) return;
+ 
+  
     const load = async () => {
       try {
-        const [healthRes, presCountRes, billingRes] = await Promise.all([
-          fetch(`${API_BASE}/api/health`),
-          fetch(`${API_BASE}/api/prescriptions/count`),
-          // billing summary endpoint
-          fetch(`${API_BASE}/api/billing/summary`),
-        ]);
+     
+
+       const headers = {
+       Authorization: `Bearer ${token}`,
+       };
+
+      const [healthRes, presCountRes, billingRes] = await Promise.all([
+      fetch(`${API_BASE}/api/health`, { headers }),
+      fetch(`${API_BASE}/api/prescriptions/count`, { headers }),
+      fetch(`${API_BASE}/api/billing/summary`, { headers }),
+    ]);
+
 
         // health
         if (!healthRes.ok) {

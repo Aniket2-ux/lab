@@ -3,16 +3,22 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+/* ✅ USE ENV VARIABLE */
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_BASE || "http://localhost:5000";
+
 export default function LoginPage() {
   const router = useRouter();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
 
   const handleLogin = async () => {
     setMessage("Logging in...");
+
     try {
-      const res = await fetch("http://localhost:5000/api/auth/login", {
+      const res = await fetch(`${API_BASE}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -25,10 +31,15 @@ export default function LoginPage() {
         return;
       }
 
+      // ✅ SAVE TOKEN
       localStorage.setItem("token", data.token);
+
       setMessage("Login successful");
+
+      // ✅ REDIRECT AFTER LOGIN
       router.push("/dashboard");
     } catch (err) {
+      console.error("Login error:", err);
       setMessage("Login error");
     }
   };
@@ -62,6 +73,7 @@ export default function LoginPage() {
           border: "none",
           color: "#fff",
           cursor: "pointer",
+          fontWeight: 600,
         }}
       >
         Login
