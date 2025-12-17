@@ -386,15 +386,7 @@ const totalAmount = Math.max(taxableAmount + (Number(roundingOff) || 0), 0);
     const changeAmount = paidAll ? Math.max((Number(tenderAmount) || 0) - totalAmount, 0) : 0;
     const totalInWords = totalAmount === 0 ? "Zero rupees" : `Approximately Rs. ${totalAmount.toFixed(2)}`;
     // referral commission calculation
-    const selectedReferrer = referrers.find((r) => r.name === referrer) || {
-  rate: 10, // 🔴 TEMP: 10% commission
-};
-
-
-    const referralCommission =
-     selectedReferrer?.rate
-    ? (grossTotal * selectedReferrer.rate) / 100
-    : 0;
+   
 
 
     // item handlers
