@@ -1,45 +1,28 @@
+// backend/src/routes/lab.js
 const express = require("express");
-const Bill = require("../models/Bill");
-const BillItem = require("../models/BillItem");
-
 const router = express.Router();
+const LabRecord = require("../models/LabRecord");
 
-/**
- * GET /api/lab/records
- * Show lab records from finalized bills
- */
-router.get("/records", async (req, res) => {
-  try {
-    const bills = await Bill.findAll({
-      where: { status: "finalized" },
-      include: [
-        {
-          model: BillItem,
-          as: "items",
-          where: { dept: "Lab" },
-          required: true,
-        },
-      ],
-      order: [["createdAt", "DESC"]],
-    });
+// GET all lab records
+router.get("/", async (req, res) => {
+  const records = await LabRecord.findAll({
+    order: [["createdAt", "DESC"]],
+  });
+  res.json(records);
+});
 
-    const records = bills.map((bill) => ({
-      id: bill.id,
-      billNumber: `LAB-${bill.id}`,
-      clientName: bill.clientName,
-      issueDate: bill.issueDate,
-      status: "Ordered",
-      items: bill.items,
-      totalAmount: bill.totalAmount,
-      createdAt: bill.createdAt,
-      updatedAt: bill.updatedAt,
-    }));
+// CREATE lab record (ONLY from billing finalize)
+router.post("/", async (req, res) => {
+  const record = await LabRecord.create({
+    billId: req.body.billId,
+    billNumber: req.body.billNumber,
+    clientName: req.body.clientName,
+    issueDate: req.body.issueDate,
+    items: req.body.items,
+    status: "Pending",
+  });
 
-    res.json(records);
-  } catch (err) {
-    console.error("❌ Lab fetch failed", err);
-    res.status(500).json({ error: "Failed to load lab records" });
-  }
+  res.json(record);
 });
 
 module.exports = router;

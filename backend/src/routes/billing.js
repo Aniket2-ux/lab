@@ -9,7 +9,7 @@ const router = express.Router();
 
 /**
  * POST /api/billing
- * Create bill + bill items + lab record (if lab items exist)
+ * Create bill + bill items + lab record (if finalized + lab items)
  */
 router.post("/", async (req, res) => {
   try {
@@ -24,7 +24,8 @@ router.post("/", async (req, res) => {
       totalAmount = 0,
       paymentMethod,
       remarks,
-      status = "draft", // IMPORTANT
+      status = "draft",
+      action,
     } = req.body;
 
     if (!clientName || !issueDate) {
@@ -33,8 +34,26 @@ router.post("/", async (req, res) => {
       });
     }
 
-    // 1️⃣ Create Bill
+    /* =========================
+       FINAL STATUS
+    ========================= */
+    const finalStatus =
+      action === "finalize" ||
+      action === "finalise" ||
+      String(status).toLowerCase() === "finalized"
+        ? "finalized"
+        : "draft";
+
+    /* =========================
+       🔑 BILL NUMBER (FIX)
+    ========================= */
+    const generatedBillNumber = `INV-${Date.now()}`;
+
+    /* =========================
+       CREATE BILL
+    ========================= */
     const bill = await Bill.create({
+      billNumber: generatedBillNumber,
       clientName,
       issueDate,
       grossTotal: Number(grossTotal) || 0,
@@ -44,46 +63,83 @@ router.post("/", async (req, res) => {
       totalAmount: Number(totalAmount) || 0,
       paymentMethod: paymentMethod || null,
       remarks: remarks || null,
-      status,
+      status: finalStatus,
     });
 
-    // 2️⃣ Create Bill Items
+    /* =========================
+       BILL ITEMS
+    ========================= */
     if (Array.isArray(items) && items.length > 0) {
       await BillItem.bulkCreate(
         items.map((it) => ({
           billId: bill.id,
           description: it.description || "",
-          dept: it.dept || null,
+          dept: it.dept || "",
           qty: Number(it.qty) || 1,
           unit: it.unit || "pcs",
           rate: Number(it.rate) || 0,
           amount:
             Number(it.amount) ||
-            (Number(it.qty || 0) * Number(it.rate || 0)),
+            Number(it.qty || 0) * Number(it.rate || 0),
         }))
       );
     }
 
-    // 3️⃣ CREATE LAB RECORD (ONLY IF FINALIZED + LAB ITEMS)
-    const labItems = items.filter((i) => i.dept === "Lab");
+    /* =========================
+       LAB ITEM DETECTION
+    ========================= */
+    const labItems = items.filter((i) => {
+      const dept = String(i.dept || "").toLowerCase();
+      const desc = String(i.description || "").toLowerCase();
 
-    if (status === "finalized" && labItems.length > 0) {
+      return (
+        dept.includes("lab") ||
+        desc.includes("cbc") ||
+        desc.includes("test") ||
+        desc.includes("blood") ||
+        desc.includes("urine")
+      );
+    });
+
+    console.log("🧪 BILL → LAB DEBUG", {
+      billNumber: generatedBillNumber,
+      finalStatus,
+      labItemsCount: labItems.length,
+    });
+
+    /* =========================
+       CREATE LAB RECORD (FIX)
+    ========================= */
+    if (finalStatus === "finalized" && labItems.length > 0) {
       await LabRecord.create({
-        billId: bill.id,
+        billId: String(bill.id),
+        billNumber: generatedBillNumber, // ✅ FIXED
         clientName,
-        testNames: labItems.map((i) => i.description).join(", "),
+        issueDate,
+        items: labItems.map((i) => ({
+          description: i.description,
+          qty: Number(i.qty) || 1,
+          rate: Number(i.rate) || 0,
+          amount:
+            Number(i.amount) ||
+            Number(i.qty || 0) * Number(i.rate || 0),
+          unit: i.unit || "pcs",
+          dept: "Lab",
+        })),
         status: "Ordered",
       });
 
-      console.log("🧪 Lab record created for bill:", bill.id);
+      console.log("✅ LAB RECORD CREATED:", generatedBillNumber);
     }
 
     res.status(201).json({
       success: true,
       billId: bill.id,
+      billNumber: generatedBillNumber,
+      status: finalStatus,
     });
   } catch (err) {
-    console.error("❌ Billing failed:", err);
+    console.error("❌ BILLING ERROR:", err);
     res.status(500).json({
       error: "Failed to create bill",
       details: err.message,
@@ -118,7 +174,7 @@ router.get("/summary", async (_req, res) => {
       todaySales: Number(todaySales || 0),
       totalSales: Number(totalSales || 0),
     });
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: "Failed to get summary" });
   }
 });
