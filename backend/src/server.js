@@ -52,6 +52,8 @@ const settingsProfileRouter = require("./routes/settingsProfile");
 // ✅ SINGLE SOURCE OF TRUTH
 const billingRoutes = require("./routes/billing");
 const labRecordsRoutes = require("./routes/labRecords");
+const labTestsRoutes = require("./routes/labTests");
+
 
 /* =========================
    MOUNT ROUTES
@@ -73,6 +75,8 @@ app.use("/api/billing", billingRoutes);
 
 // ✅ ONLY ONE LAB ROUTE
 app.use("/api/lab", labRecordsRoutes);
+app.use("/api/lab-tests", labTestsRoutes);
+
 
 /* =========================
    HEALTH CHECK

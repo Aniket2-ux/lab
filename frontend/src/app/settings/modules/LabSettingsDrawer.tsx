@@ -1,10 +1,49 @@
 "use client";
 
+import { useState } from "react";
+
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_BASE || "http://localhost:5000";
+
 export default function LabSettingsDrawer({
   onClose,
 }: {
   onClose: () => void;
 }) {
+  const [testName, setTestName] = useState("");
+  const [message, setMessage] = useState("");
+
+  const handleSave = async () => {
+    setMessage("Saving...");
+
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await fetch(`${API_BASE}/api/lab-tests`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: testName,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setMessage(data.message || "Save failed");
+        return;
+      }
+
+      setMessage("Saved successfully");
+      setTestName("");
+    } catch (err) {
+      setMessage("Server error");
+    }
+  };
+
   return (
     <div
       style={{
@@ -16,110 +55,52 @@ export default function LabSettingsDrawer({
         background: "#fff",
         borderLeft: "1px solid #e5e7eb",
         padding: 20,
-        overflowY: "auto",
         zIndex: 50,
       }}
     >
+      {/* HEADER */}
       <div style={{ display: "flex", justifyContent: "space-between" }}>
-        <h3>Lab Settings</h3>
-        <button onClick={onClose} style={closeBtn}>×</button>
+        <h3>Create / Edit Lab Test</h3>
+        <button onClick={onClose}>✕</button>
       </div>
 
-      <Section title="General">
-        <Check label="Enable Test Creation From Bill Only" />
-        <Check label="Enable Additional Lab Data" />
-        <Check label="Enable Internal Stock" />
-        <Check label="Enable Extra Referrer" />
+      {/* FORM */}
+      <div style={{ marginTop: 20 }}>
+        <label style={{ fontSize: 13 }}>Lab Test Name</label>
 
-        <label style={label}>Accessing Resource Centre</label>
-        <select style={input}>
-          <option>Type accessing labs</option>
-        </select>
+        <input
+          value={testName}
+          onChange={(e) => setTestName(e.target.value)}
+          placeholder="Enter lab test name"
+          style={{
+            width: "100%",
+            padding: 10,
+            marginTop: 6,
+            border: "1px solid #d1d5db",
+            borderRadius: 6,
+          }}
+        />
 
-        <Dropdown label="Lab Test Number Settings" />
-      </Section>
+        <button
+          onClick={handleSave}
+          style={{
+            marginTop: 16,
+            width: "100%",
+            padding: 10,
+            background: "#009150",
+            color: "#fff",
+            border: "none",
+            borderRadius: 6,
+            fontWeight: 600,
+          }}
+        >
+          SAVE
+        </button>
 
-      <Section title="Manage Lab Tests And Groups">
-        <div style={{ display: "flex", gap: 10 }}>
-          <Button>Create or Edit Lab Test</Button>
-          <Button>Create or Edit Test Group</Button>
-        </div>
-      </Section>
-
-      <Section title="Lab Print">
-        <Dropdown label="Print Header" />
-        <Dropdown label="Print body" />
-        <Dropdown label="Print footer" />
-      </Section>
+        {message && (
+          <p style={{ marginTop: 10, fontSize: 13 }}>{message}</p>
+        )}
+      </div>
     </div>
   );
 }
-
-/* ---------- UI ---------- */
-
-function Section({ title, children }: any) {
-  return (
-    <div style={{ marginTop: 20 }}>
-      <h4>{title}</h4>
-      {children}
-    </div>
-  );
-}
-
-function Check({ label }: { label: string }) {
-  return (
-    <label style={{ display: "flex", gap: 8, marginBottom: 8 }}>
-      <input type="checkbox" defaultChecked />
-      {label}
-    </label>
-  );
-}
-
-function Dropdown({ label }: { label: string }) {
-  return (
-    <div
-      style={{
-        border: "1px solid #e5e7eb",
-        borderRadius: 6,
-        padding: "10px 12px",
-        marginTop: 10,
-        cursor: "pointer",
-      }}
-    >
-      {label}
-    </div>
-  );
-}
-
-function Button({ children }: any) {
-  return (
-    <button
-      style={{
-        padding: "8px 14px",
-        border: "1px solid #d1d5db",
-        background: "#fff",
-        borderRadius: 6,
-        cursor: "pointer",
-        fontWeight: 500,
-      }}
-    >
-      {children}
-    </button>
-  );
-}
-
-const input = {
-  width: "100%",
-  padding: "8px",
-  borderRadius: 6,
-  border: "1px solid #d1d5db",
-};
-
-const label = { fontSize: 12, color: "#6b7280", marginTop: 10 };
-
-const closeBtn = {
-  fontSize: 22,
-  background: "transparent",
-  border: "none",
-  cursor: "pointer",
-};
