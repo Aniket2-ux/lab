@@ -2,47 +2,12 @@
 
 import { useState } from "react";
 
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE || "http://localhost:5000";
-
 export default function LabSettingsDrawer({
   onClose,
 }: {
   onClose: () => void;
 }) {
-  const [testName, setTestName] = useState("");
-  const [message, setMessage] = useState("");
-
-  const handleSave = async () => {
-    setMessage("Saving...");
-
-    try {
-      const token = localStorage.getItem("token");
-
-      const res = await fetch(`${API_BASE}/api/lab-tests`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          name: testName,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setMessage(data.message || "Save failed");
-        return;
-      }
-
-      setMessage("Saved successfully");
-      setTestName("");
-    } catch (err) {
-      setMessage("Server error");
-    }
-  };
+  const [openLabTest, setOpenLabTest] = useState(false);
 
   return (
     <div
@@ -55,52 +20,138 @@ export default function LabSettingsDrawer({
         background: "#fff",
         borderLeft: "1px solid #e5e7eb",
         padding: 20,
+        overflowY: "auto",
         zIndex: 50,
       }}
     >
-      {/* HEADER */}
-      <div style={{ display: "flex", justifyContent: "space-between" }}>
-        <h3>Create / Edit Lab Test</h3>
+      {/* Header */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          marginBottom: 16,
+        }}
+      >
+        <h3>Lab Settings</h3>
         <button onClick={onClose}>✕</button>
       </div>
 
-      {/* FORM */}
-      <div style={{ marginTop: 20 }}>
-        <label style={{ fontSize: 13 }}>Lab Test Name</label>
+      {/* General */}
+      <h4>General</h4>
+      <label>
+        <input type="checkbox" defaultChecked /> Enable Test Creation From Bill
+        Only
+      </label>
+      <br />
+      <label>
+        <input type="checkbox" defaultChecked /> Enable Additional Lab Data
+      </label>
+      <br />
+      <label>
+        <input type="checkbox" defaultChecked /> Enable Internal Stock
+      </label>
+      <br />
+      <label>
+        <input type="checkbox" defaultChecked /> Enable Extra Referrer
+      </label>
 
-        <input
-          value={testName}
-          onChange={(e) => setTestName(e.target.value)}
-          placeholder="Enter lab test name"
-          style={{
-            width: "100%",
-            padding: 10,
-            marginTop: 6,
-            border: "1px solid #d1d5db",
-            borderRadius: 6,
-          }}
-        />
+      <hr style={{ margin: "16px 0" }} />
 
-        <button
-          onClick={handleSave}
-          style={{
-            marginTop: 16,
-            width: "100%",
-            padding: 10,
-            background: "#009150",
-            color: "#fff",
-            border: "none",
-            borderRadius: 6,
-            fontWeight: 600,
-          }}
-        >
-          SAVE
-        </button>
+      {/* Manage lab */}
+      <h4>Manage Lab Tests And Groups</h4>
 
-        {message && (
-          <p style={{ marginTop: 10, fontSize: 13 }}>{message}</p>
-        )}
+      <button
+        onClick={() => setOpenLabTest(true)}
+        style={{
+          width: "100%",
+          padding: 10,
+          marginBottom: 8,
+          border: "1px solid #16a34a",
+          background: "#fff",
+          cursor: "pointer",
+        }}
+      >
+        Create or Edit Lab Test
+      </button>
+
+      <button
+        style={{
+          width: "100%",
+          padding: 10,
+          border: "1px solid #e5e7eb",
+          background: "#f9fafb",
+        }}
+      >
+        Create or Edit Test Group
+      </button>
+
+      {/* Drawer inside drawer */}
+      {openLabTest && (
+        <LabTestDrawer onClose={() => setOpenLabTest(false)} />
+      )}
+    </div>
+  );
+}
+
+/* ===============================
+   LAB TEST CREATE / EDIT PANEL
+================================ */
+function LabTestDrawer({ onClose }: { onClose: () => void }) {
+  return (
+    <div
+      style={{
+        position: "fixed",
+        right: 420,
+        top: 0,
+        bottom: 0,
+        width: 480,
+        background: "#fff",
+        borderLeft: "1px solid #e5e7eb",
+        padding: 20,
+        zIndex: 60,
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          marginBottom: 16,
+        }}
+      >
+        <h3>Lab Test Create / Edit</h3>
+        <button onClick={onClose}>✕</button>
       </div>
+
+      <label>Lab Test Name</label>
+      <input
+        style={{ width: "100%", padding: 8, marginBottom: 12 }}
+        placeholder="Haemoglobin"
+      />
+
+      <label>Unit</label>
+      <input
+        style={{ width: "100%", padding: 8, marginBottom: 12 }}
+        placeholder="g/dL"
+      />
+
+      <label>Normal Range</label>
+      <input
+        style={{ width: "100%", padding: 8, marginBottom: 12 }}
+        placeholder="12 - 16"
+      />
+
+      <button
+        style={{
+          width: "100%",
+          padding: 10,
+          background: "#16a34a",
+          color: "#fff",
+          border: "none",
+          cursor: "pointer",
+        }}
+      >
+        Save Lab Test
+      </button>
     </div>
   );
 }
