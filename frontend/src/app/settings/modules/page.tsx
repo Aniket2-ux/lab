@@ -8,10 +8,8 @@ export default function ModulesPage() {
 
   return (
     <div style={{ padding: 24, position: "relative" }}>
-      {/* PAGE TITLE */}
       <h2 style={{ marginBottom: 16 }}>Module Setting</h2>
 
-      {/* MODULE CARDS */}
       <div
         style={{
           display: "grid",
@@ -21,13 +19,7 @@ export default function ModulesPage() {
       >
         <Card title="Calendar and Client" />
         <Card title="OPD" />
-
-        {/* ✅ LAB MODULE (OPENS DRAWER) */}
-        <Card
-          title="Lab"
-          onClick={() => setOpenLab(true)}
-        />
-
+        <Card title="Lab" onClick={() => setOpenLab(true)} />
         <Card title="Billing" />
         <Card title="Stock" />
         <Card title="IPD" />
@@ -35,19 +27,11 @@ export default function ModulesPage() {
         <Card title="Medical" />
       </div>
 
-      {/* ✅ LAB SETTINGS DRAWER */}
-      {openLab && (
-        <LabSettingsDrawer
-          onClose={() => setOpenLab(false)}
-        />
-      )}
+      {openLab && <LabSettingsDrawer onClose={() => setOpenLab(false)} />}
     </div>
   );
 }
 
-/* =========================
-   MODULE CARD COMPONENT
-========================= */
 function Card({
   title,
   onClick,
@@ -64,7 +48,6 @@ function Card({
         border: "1px solid #e5e7eb",
         borderRadius: 10,
         cursor: onClick ? "pointer" : "default",
-        transition: "all 0.15s ease",
       }}
     >
       <div style={{ fontWeight: 600 }}>{title}</div>

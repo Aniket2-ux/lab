@@ -10,148 +10,121 @@ export default function LabSettingsDrawer({
   const [openLabTest, setOpenLabTest] = useState(false);
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        right: 0,
-        top: 0,
-        bottom: 0,
-        width: 420,
-        background: "#fff",
-        borderLeft: "1px solid #e5e7eb",
-        padding: 20,
-        overflowY: "auto",
-        zIndex: 50,
-      }}
-    >
-      {/* Header */}
+    <>
+      {/* RIGHT DRAWER */}
       <div
         style={{
-          display: "flex",
-          justifyContent: "space-between",
-          marginBottom: 16,
-        }}
-      >
-        <h3>Lab Settings</h3>
-        <button onClick={onClose}>✕</button>
-      </div>
-
-      {/* General */}
-      <h4>General</h4>
-      <label>
-        <input type="checkbox" defaultChecked /> Enable Test Creation From Bill
-        Only
-      </label>
-      <br />
-      <label>
-        <input type="checkbox" defaultChecked /> Enable Additional Lab Data
-      </label>
-      <br />
-      <label>
-        <input type="checkbox" defaultChecked /> Enable Internal Stock
-      </label>
-      <br />
-      <label>
-        <input type="checkbox" defaultChecked /> Enable Extra Referrer
-      </label>
-
-      <hr style={{ margin: "16px 0" }} />
-
-      {/* Manage lab */}
-      <h4>Manage Lab Tests And Groups</h4>
-
-      <button
-        onClick={() => setOpenLabTest(true)}
-        style={{
-          width: "100%",
-          padding: 10,
-          marginBottom: 8,
-          border: "1px solid #16a34a",
+          position: "fixed",
+          right: 0,
+          top: 0,
+          bottom: 0,
+          width: 420,
           background: "#fff",
-          cursor: "pointer",
+          borderLeft: "1px solid #e5e7eb",
+          padding: 20,
+          overflowY: "auto",
+          zIndex: 50,
         }}
       >
-        Create or Edit Lab Test
-      </button>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            marginBottom: 16,
+          }}
+        >
+          <h3>Lab Settings</h3>
+          <button onClick={onClose}>✕</button>
+        </div>
 
-      <button
-        style={{
-          width: "100%",
-          padding: 10,
-          border: "1px solid #e5e7eb",
-          background: "#f9fafb",
-        }}
-      >
-        Create or Edit Test Group
-      </button>
+        <h4>Manage Lab Tests And Groups</h4>
 
-      {/* Drawer inside drawer */}
-      {openLabTest && (
-        <LabTestDrawer onClose={() => setOpenLabTest(false)} />
-      )}
-    </div>
-  );
-}
+        <div style={{ display: "flex", gap: 12, marginTop: 12 }}>
+          <button
+            onClick={() => setOpenLabTest(true)}
+            style={{
+              flex: 1,
+              padding: 10,
+              border: "1px solid #e5e7eb",
+              borderRadius: 6,
+              cursor: "pointer",
+              background: "#fff",
+            }}
+          >
+            Create or Edit Lab Test
+          </button>
 
-/* ===============================
-   LAB TEST CREATE / EDIT PANEL
-================================ */
-function LabTestDrawer({ onClose }: { onClose: () => void }) {
-  return (
-    <div
-      style={{
-        position: "fixed",
-        right: 420,
-        top: 0,
-        bottom: 0,
-        width: 480,
-        background: "#fff",
-        borderLeft: "1px solid #e5e7eb",
-        padding: 20,
-        zIndex: 60,
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          marginBottom: 16,
-        }}
-      >
-        <h3>Lab Test Create / Edit</h3>
-        <button onClick={onClose}>✕</button>
+          <button
+            style={{
+              flex: 1,
+              padding: 10,
+              border: "1px solid #e5e7eb",
+              borderRadius: 6,
+              background: "#f9fafb",
+            }}
+          >
+            Create or Edit Test Group
+          </button>
+        </div>
       </div>
 
-      <label>Lab Test Name</label>
-      <input
-        style={{ width: "100%", padding: 8, marginBottom: 12 }}
-        placeholder="Haemoglobin"
-      />
+      {/* MODAL */}
+      {openLabTest && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.35)",
+            zIndex: 100,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <div
+            style={{
+              width: 600,
+              background: "#fff",
+              borderRadius: 10,
+              padding: 20,
+            }}
+          >
+            <h3>Create / Edit Lab Test</h3>
 
-      <label>Unit</label>
-      <input
-        style={{ width: "100%", padding: 8, marginBottom: 12 }}
-        placeholder="g/dL"
-      />
+            <input
+              placeholder="Lab Test Name"
+              style={{
+                width: "100%",
+                padding: 10,
+                marginTop: 12,
+                marginBottom: 12,
+                border: "1px solid #e5e7eb",
+                borderRadius: 6,
+              }}
+            />
 
-      <label>Normal Range</label>
-      <input
-        style={{ width: "100%", padding: 8, marginBottom: 12 }}
-        placeholder="12 - 16"
-      />
-
-      <button
-        style={{
-          width: "100%",
-          padding: 10,
-          background: "#16a34a",
-          color: "#fff",
-          border: "none",
-          cursor: "pointer",
-        }}
-      >
-        Save Lab Test
-      </button>
-    </div>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: 10,
+              }}
+            >
+              <button onClick={() => setOpenLabTest(false)}>Cancel</button>
+              <button
+                style={{
+                  background: "#0b7a53",
+                  color: "#fff",
+                  padding: "8px 14px",
+                  borderRadius: 6,
+                }}
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
