@@ -2,124 +2,115 @@
 
 import { useState } from "react";
 
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_BASE || "http://145.223.23.176:5000";
+
 export default function LabSettingsDrawer({
   onClose,
 }: {
   onClose: () => void;
 }) {
   const [openLabTest, setOpenLabTest] = useState(false);
+  const [name, setName] = useState("");
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    setError("");
+    setSaving(true);
+
+    const token = localStorage.getItem("token");
+    console.log("TOKEN:", token);
+
+    if (!token) {
+      setError("Not logged in");
+      setSaving(false);
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE}/api/lab-tests`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ name }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.message || "Failed to save");
+        setSaving(false);
+        return;
+      }
+
+      setName("");
+      setOpenLabTest(false);
+    } catch (e) {
+      setError("Backend not reachable");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <>
-      {/* RIGHT DRAWER */}
-      <div
-        style={{
-          position: "fixed",
-          right: 0,
-          top: 0,
-          bottom: 0,
-          width: 420,
-          background: "#fff",
-          borderLeft: "1px solid #e5e7eb",
-          padding: 20,
-          overflowY: "auto",
-          zIndex: 50,
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            marginBottom: 16,
-          }}
-        >
-          <h3>Lab Settings</h3>
-          <button onClick={onClose}>✕</button>
-        </div>
+      {/* DRAWER */}
+      <div style={{
+        position: "fixed",
+        right: 0,
+        top: 0,
+        bottom: 0,
+        width: 420,
+        background: "#fff",
+        borderLeft: "1px solid #e5e7eb",
+        padding: 20,
+        zIndex: 50
+      }}>
+        <h3>Lab Settings</h3>
 
-        <h4>Manage Lab Tests And Groups</h4>
+        <button onClick={() => setOpenLabTest(true)}>
+          Create or Edit Lab Test
+        </button>
 
-        <div style={{ display: "flex", gap: 12, marginTop: 12 }}>
-          <button
-            onClick={() => setOpenLabTest(true)}
-            style={{
-              flex: 1,
-              padding: 10,
-              border: "1px solid #e5e7eb",
-              borderRadius: 6,
-              cursor: "pointer",
-              background: "#fff",
-            }}
-          >
-            Create or Edit Lab Test
-          </button>
-
-          <button
-            style={{
-              flex: 1,
-              padding: 10,
-              border: "1px solid #e5e7eb",
-              borderRadius: 6,
-              background: "#f9fafb",
-            }}
-          >
-            Create or Edit Test Group
-          </button>
-        </div>
+        <button onClick={onClose}>Close</button>
       </div>
 
       {/* MODAL */}
       {openLabTest && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,0.35)",
-            zIndex: 100,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <div
-            style={{
-              width: 600,
-              background: "#fff",
-              borderRadius: 10,
-              padding: 20,
-            }}
-          >
+        <div style={{
+          position: "fixed",
+          inset: 0,
+          background: "rgba(0,0,0,0.35)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 100
+        }}>
+          <div style={{ background: "#fff", padding: 20, width: 500 }}>
             <h3>Create / Edit Lab Test</h3>
 
             <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               placeholder="Lab Test Name"
-              style={{
-                width: "100%",
-                padding: 10,
-                marginTop: 12,
-                marginBottom: 12,
-                border: "1px solid #e5e7eb",
-                borderRadius: 6,
-              }}
+              style={{ width: "100%", padding: 10 }}
             />
 
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "flex-end",
-                gap: 10,
-              }}
-            >
+            {error && (
+              <p style={{ color: "red", marginTop: 8 }}>{error}</p>
+            )}
+
+            <div style={{ marginTop: 12 }}>
               <button onClick={() => setOpenLabTest(false)}>Cancel</button>
               <button
-                style={{
-                  background: "#0b7a53",
-                  color: "#fff",
-                  padding: "8px 14px",
-                  borderRadius: 6,
-                }}
+                onClick={handleSave}
+                disabled={saving}
+                style={{ marginLeft: 8 }}
               >
-                Save
+                {saving ? "Saving..." : "Save"}
               </button>
             </div>
           </div>

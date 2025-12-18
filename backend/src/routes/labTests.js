@@ -3,28 +3,32 @@ const router = express.Router();
 const authMiddleware = require("./authMiddleware");
 const LabTest = require("../models/LabTest");
 
-// GET all lab tests
+/* GET LAB TESTS */
 router.get("/", authMiddleware, async (req, res) => {
-  const tests = await LabTest.findAll({
-    order: [["name", "ASC"]],
-  });
+  const tests = await LabTest.findAll({ order: [["name", "ASC"]] });
   res.json(tests);
 });
 
-// CREATE lab test (Settings → Lab)
+/* CREATE LAB TEST */
 router.post("/", authMiddleware, async (req, res) => {
-  const { name } = req.body;
+  const { name, unit, normalRange, price } = req.body;
 
   if (!name) {
-    return res.status(400).json({ message: "Test name required" });
+    return res.status(400).json({ message: "Name required" });
   }
 
-  const existing = await LabTest.findOne({ where: { name } });
-  if (existing) {
-    return res.status(400).json({ message: "Test already exists" });
+  const exists = await LabTest.findOne({ where: { name } });
+  if (exists) {
+    return res.status(400).json({ message: "Already exists" });
   }
 
-  const test = await LabTest.create({ name });
+  const test = await LabTest.create({
+    name,
+    unit,
+    normalRange,
+    price,
+  });
+
   res.json(test);
 });
 
