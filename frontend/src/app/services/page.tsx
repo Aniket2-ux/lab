@@ -55,6 +55,7 @@ type DeptEntry = {
   department: string;
 };
 
+
 export default function ServicesPage() {
   const [services, setServices] = useState<Service[]>([]);
   const [filtered, setFiltered] = useState<Service[]>([]);
@@ -97,8 +98,7 @@ export default function ServicesPage() {
         setError(null);
 
 
-       const API_BASE =
-        process.env.NEXT_PUBLIC_API_BASE || "http://localhost:5000";
+      
 
       const res = await fetch(`${API_BASE}/api/services`, {
         headers: {
@@ -186,13 +186,13 @@ export default function ServicesPage() {
     
     try {
       const res = await fetch(
-        `${API_BASE}/api/services/bulk-delete`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ids: selectedIds }),
-        }
-      );
+  `${API_BASE}/api/services/bulk-delete`,
+  {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ids: selectedIds }),
+  }
+);
 
 
 
@@ -250,11 +250,12 @@ export default function ServicesPage() {
         departments,
       };
 
-      const res = await fetch(`${API_BASE}/api/services`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+     const res = await fetch(`${API_BASE}/api/services`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(payload),
+});
+
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
