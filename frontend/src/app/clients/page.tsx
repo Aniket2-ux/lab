@@ -6,6 +6,9 @@ import { useRouter } from "next/navigation";
 import Sidebar from "../../components/Sidebar";
 import HeaderBar from "../../components/HeaderBar";
 
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_BASE || "http://localhost:5000";
+
 type Client = {
   id: number;
   fullName: string;
@@ -89,13 +92,17 @@ export default function ClientsPage() {
   // ---- fetch all clients ----
   useEffect(() => {
     const load = async () => {
-      try {
-        setLoading(true);
-        const res = await fetch("http://localhost:5000/api/clients");
-        if (!res.ok) throw new Error("HTTP " + res.status);
-        const data: Client[] = await res.json();
-        setClients(data);
-      } catch (err) {
+    try {
+  setLoading(true);
+
+  const res = await fetch(`${API_BASE}/api/clients`);
+
+  if (!res.ok) throw new Error("HTTP " + res.status);
+
+  const data: Client[] = await res.json();
+  setClients(data);
+} catch (err){
+      
         console.error("Failed to load clients", err);
       } finally {
         setLoading(false);
@@ -664,20 +671,21 @@ function CreateClientDrawer({
       setError(null);
 
       // Only send fields that backend knows about
-      const res = await fetch("http://localhost:5000/api/clients", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          fullName: form.fullName,
-          phone: form.phone || form.additionalPhone || null,
-          email: form.email || null,
-          age: form.age ? Number(form.age) : null,
-          gender: form.gender || null,
-          address: form.address || null,
-          knownFrom: form.knownFrom || null,
-          internalNotes: form.internalNotes || null,
-        }),
-      });
+     const res = await fetch(`${API_BASE}/api/clients`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    fullName: form.fullName,
+    phone: form.phone || form.additionalPhone || null,
+    email: form.email || null,
+    age: form.age ? Number(form.age) : null,
+    gender: form.gender || null,
+    address: form.address || null,
+    knownFrom: form.knownFrom || null,
+    internalNotes: form.internalNotes || null,
+  }),
+});
+
 
       if (!res.ok) throw new Error("HTTP " + res.status);
       const created: Client = await res.json();
