@@ -39,6 +39,9 @@ const TYPE_OPTIONS = [
 const typeLabel = (value: string) =>
   TYPE_OPTIONS.find((t) => t.value === value)?.label ?? value;
 
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_BASE || "http://localhost:5000";
+
 // ---- Types for create-service form ----
 type ProviderRate = {
   id: number;
@@ -92,8 +95,28 @@ export default function ServicesPage() {
       try {
         setLoading(true);
         setError(null);
-        const res = await fetch("http://localhost:5000/api/services");
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+
+       const API_BASE =
+        process.env.NEXT_PUBLIC_API_BASE || "http://localhost:5000";
+
+      const res = await fetch(`${API_BASE}/api/services`, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+        
+        
+        
+        
+        
+        
+        
+        
         const data: Service[] = await res.json();
         setServices(data);
         setFiltered(data);
@@ -159,15 +182,20 @@ export default function ServicesPage() {
     );
     if (!ok) return;
 
+    
+    
     try {
       const res = await fetch(
-        "http://localhost:5000/api/services/bulk-delete",
+        `${API_BASE}/api/services/bulk-delete`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ ids: selectedIds }),
         }
       );
+
+
+
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || `HTTP ${res.status}`);
@@ -222,7 +250,7 @@ export default function ServicesPage() {
         departments,
       };
 
-      const res = await fetch("http://localhost:5000/api/services", {
+      const res = await fetch(`${API_BASE}/api/services`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

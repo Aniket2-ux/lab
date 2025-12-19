@@ -10,7 +10,13 @@ const PORT = process.env.PORT || 5000;
 /* =========================
    MIDDLEWARE
 ========================= */
-app.use(cors());
+app.use(
+  cors({
+    origin: "*", // frontend on :3000
+    credentials: true,
+  })
+);
+
 app.use(express.json());
 
 /* =========================
@@ -22,7 +28,7 @@ app.use(express.json());
   "Service",
   "Medicine",
   "LabTest",
-  "prescription",
+  "Prescription", // ✅ FIXED (was "prescription")
   "Bill",
   "BillItem",
   "CreditNote",
@@ -53,7 +59,7 @@ const settingsProfileRouter = require("./routes/settingsProfile");
 const billingRoutes = require("./routes/billing");
 const labRecordsRoutes = require("./routes/labRecords");
 
-/* ✅ FIX: ENSURE FILE NAME MATCHES EXACTLY */
+// ✅ LAB TEST MASTER (settings → lab)
 const labTestsRoutes = require("./routes/labTests");
 
 /* =========================
@@ -77,13 +83,13 @@ app.use("/api/billing", billingRoutes);
 // ✅ ONLY ONE LAB ROUTE (records)
 app.use("/api/lab", labRecordsRoutes);
 
-// ✅ LAB TEST MASTER (settings → lab)
+// ✅ LAB TEST MASTER
 app.use("/api/lab-tests", labTestsRoutes);
 
 /* =========================
    HEALTH CHECK
 ========================= */
-app.get("/api/health", (req, res) => {
+app.get("/api/health", (_req, res) => {
   res.json({ status: "ok", message: "Backend is working" });
 });
 
@@ -104,10 +110,12 @@ app.get("/", (_req, res) => {
 (async () => {
   try {
     await sequelize.authenticate();
-    await sequelize.sync();
+
+    // ✅ SAFE SYNC (no data loss)
+    await sequelize.sync({ alter: false });
 
     app.listen(PORT, "0.0.0.0", () => {
-      console.log(`🚀 Backend running on http://localhost:${PORT}`);
+      console.log(`🚀 Backend running on http://0.0.0.0:${PORT}`);
     });
   } catch (err) {
     console.error("❌ Server failed to start:", err);
