@@ -1,8 +1,7 @@
 // backend/src/routes/clients.js
 const express = require("express");
 const router = express.Router();
-const Client = require("../models/Client"); 
-const { Op } = require("sequelize");
+const Client = require("../models/Client");
 
 // GET all clients
 router.get("/", async (req, res) => {
@@ -22,17 +21,21 @@ router.post("/", async (req, res) => {
   try {
     const {
       fullName,
-      phone,
-      email,
-      age,
-      gender,
-      address,
-      knownFrom,
-      internalNotes,
+      phone = null,
+      email = null,
+      age = null,
+      gender = null,
+      address = null,
+      knownFrom = null,
+      internalNotes = null,
     } = req.body;
 
+    if (!fullName || !fullName.trim()) {
+      return res.status(400).json({ error: "Full name is required" });
+    }
+
     const client = await Client.create({
-      fullName,
+      fullName: fullName.trim(),
       phone,
       email,
       age,
@@ -45,7 +48,10 @@ router.post("/", async (req, res) => {
     res.status(201).json(client);
   } catch (err) {
     console.error("Error creating client:", err);
-    res.status(500).json({ error: "Server error creating client" });
+    res.status(500).json({
+      error: "Server error creating client",
+      detail: err.message,
+    });
   }
 });
 

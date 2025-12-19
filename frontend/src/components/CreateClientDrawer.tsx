@@ -1,18 +1,22 @@
-// frontend/src/components/CreateClientDrawer.tsx
 "use client";
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:5000";
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_BASE || "http://localhost:5000";
 
 type Props = {
   onClose: () => void;
-  onCreated?: (client: any) => void; // optional
+  onCreated?: (client: any) => void;
   initialName?: string;
 };
 
-export default function CreateClientDrawer({ onClose, onCreated, initialName = "" }: Props) {
+export default function CreateClientDrawer({
+  onClose,
+  onCreated,
+  initialName = "",
+}: Props) {
   const router = useRouter();
 
   const [fullName, setFullName] = useState(initialName);
@@ -24,10 +28,12 @@ export default function CreateClientDrawer({ onClose, onCreated, initialName = "
 
   async function handleCreate() {
     setError(null);
+
     if (!fullName.trim()) {
       setError("Name is required");
       return;
     }
+
     setLoading(true);
     try {
       const payload = {
@@ -35,6 +41,12 @@ export default function CreateClientDrawer({ onClose, onCreated, initialName = "
         age: age === "" ? null : Number(age),
         gender: gender || null,
         phone: phone || null,
+
+        // future-safe fields
+        email: null,
+        address: null,
+        knownFrom: null,
+        internalNotes: null,
       };
 
       const res = await fetch(`${API_BASE}/api/clients`, {
@@ -44,88 +56,81 @@ export default function CreateClientDrawer({ onClose, onCreated, initialName = "
       });
 
       if (!res.ok) {
-        const txt = await res.text().catch(() => "");
-        throw new Error(txt || `HTTP ${res.status}`);
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `HTTP ${res.status}`);
       }
 
       const created = await res.json();
 
-      // call parent callback (if present)
       if (onCreated) onCreated(created);
 
-      // Close drawer then navigate to billing page with newClientId query param
       onClose();
 
-      // if server returned id, pass it in query so billing picks it up
-      const createdId = (created && (created.id ?? created._id)) || null;
-      if (createdId) {
-        // push to billing with param so billing preselects
-        router.push(`/billing?newClientId=${encodeURIComponent(String(createdId))}`);
+      if (created?.id) {
+        router.push(`/billing?newClientId=${created.id}`);
       } else {
-        // fallback: just go to billing
         router.push("/billing");
       }
     } catch (e: any) {
       console.error("Create client failed", e);
-      setError(e?.message || "Failed to create client");
+      setError(e.message || "Failed to create client");
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 80, background: "rgba(0,0,0,0.35)", display: "flex", justifyContent: "flex-end" }}>
-      <div style={{ width: 420, maxWidth: "100%", background: "#fff", padding: 20, height: "100%", overflowY: "auto" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <h3 style={{ margin: 0 }}>Create Client</h3>
-          <button onClick={onClose} aria-label="Close" style={{ border: "none", background: "transparent", fontSize: 20, cursor: "pointer" }}>×</button>
-        </div>
+    <div style={overlay}>
+      <div style={drawer}>
+        <header style={header}>
+          <h3>Create Client</h3>
+          <button onClick={onClose} style={closeBtn}>×</button>
+        </header>
 
-        <div style={{ marginTop: 12 }}>
-          <label style={{ fontSize: 13, fontWeight: 600 }}>Full name</label>
-          <input value={fullName} onChange={(e) => setFullName(e.target.value)} style={inputStyle} placeholder="Client full name" />
-        </div>
+        <label>Full name</label>
+        <input value={fullName} onChange={(e) => setFullName(e.target.value)} style={inputStyle} />
 
         <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
           <div style={{ flex: 1 }}>
-            <label style={{ fontSize: 13, fontWeight: 600 }}>Age</label>
-            <input value={age === "" ? "" : String(age)} onChange={(e) => setAge(e.target.value === "" ? "" : Number(e.target.value))} style={inputStyle} type="number" min={0} placeholder="Age" />
+            <label>Age</label>
+            <input
+              type="number"
+              min={0}
+              value={age === "" ? "" : age}
+              onChange={(e) => setAge(e.target.value === "" ? "" : Number(e.target.value))}
+              style={inputStyle}
+            />
           </div>
           <div style={{ flex: 1 }}>
-            <label style={{ fontSize: 13, fontWeight: 600 }}>Gender</label>
+            <label>Gender</label>
             <select value={gender} onChange={(e) => setGender(e.target.value)} style={inputStyle}>
               <option value="">Select</option>
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-              <option value="Other">Other</option>
+              <option>Male</option>
+              <option>Female</option>
+              <option>Other</option>
             </select>
           </div>
         </div>
 
-        <div style={{ marginTop: 10 }}>
-          <label style={{ fontSize: 13, fontWeight: 600 }}>Phone</label>
-          <input value={phone} onChange={(e) => setPhone(e.target.value)} style={inputStyle} placeholder="Phone number" />
-        </div>
+        <label style={{ marginTop: 10 }}>Phone</label>
+        <input value={phone} onChange={(e) => setPhone(e.target.value)} style={inputStyle} />
 
-        {error && <div style={{ marginTop: 12, color: "red" }}>{error}</div>}
+        {error && <div style={{ color: "red", marginTop: 10 }}>{error}</div>}
 
-        <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 16 }}>
-          <button onClick={onClose} style={{ padding: "8px 14px", borderRadius: 6, border: "1px solid #e5e7eb", background: "#fff" }}>Cancel</button>
-          <button onClick={handleCreate} disabled={loading} style={{ padding: "8px 14px", borderRadius: 6, border: "none", background: "#0b7a53", color: "#fff" }}>
+        <footer style={{ marginTop: 16 }}>
+          <button onClick={onClose}>Cancel</button>
+          <button onClick={handleCreate} disabled={loading}>
             {loading ? "Creating..." : "Create Client"}
           </button>
-        </div>
+        </footer>
       </div>
     </div>
   );
 }
 
-// shared input style
-const inputStyle: React.CSSProperties = {
-  width: "100%",
-  padding: "8px 10px",
-  borderRadius: 6,
-  border: "1px solid #e5e7eb",
-  marginTop: 6,
-  boxSizing: "border-box",
-};
+/* styles */
+const overlay = { position: "fixed", inset: 0, background: "rgba(0,0,0,0.35)", zIndex: 80, display: "flex", justifyContent: "flex-end" } as const;
+const drawer = { width: 420, background: "#fff", padding: 20, height: "100%" } as const;
+const header = { display: "flex", justifyContent: "space-between" } as const;
+const closeBtn = { fontSize: 20, border: "none", background: "transparent" } as const;
+const inputStyle = { width: "100%", padding: 8, borderRadius: 6, border: "1px solid #e5e7eb" } as const;
