@@ -1,74 +1,119 @@
 const express = require("express");
 const router = express.Router();
-const Client = require("../models/Client");
+const Service = require("../models/Service");
 
 /* ================================
-   GET all clients
+   GET /api/services
+   Get all services
 ================================ */
 router.get("/", async (req, res) => {
   try {
-    const clients = await Client.findAll({
+    const services = await Service.findAll({
       order: [["createdAt", "DESC"]],
     });
-    res.json(clients);
+    res.json(services);
   } catch (err) {
-    console.error("Error fetching clients:", err);
-    res.status(500).json({ error: "Server error fetching clients" });
+    console.error("Error fetching services:", err);
+    res.status(500).json({ error: "Failed to fetch services" });
   }
 });
 
 /* ================================
-   CREATE client (FINAL FIX)
+   POST /api/services
+   Create new service
 ================================ */
 router.post("/", async (req, res) => {
   try {
     const {
-      fullName,
-      phone,
-      email,
-      age,
-      gender,
-      address,
-      knownFrom,
-      internalNotes,
-      // ⛔ ignore extra UI-only fields safely
+      name,
+      type = "other",
+      serviceCode = null,
+      unit = null,
+      price = 0,
+      taxPercent = 0,
+      materialCharge = 0,
+      labCharge = 0,
+      providerRates = null,
+      departments = [],
     } = req.body;
 
-    if (!fullName || !fullName.trim()) {
-      return res.status(400).json({ error: "Full name is required" });
+    if (!name || !name.trim()) {
+      return res.status(400).json({
+        error: "Service name is required",
+      });
     }
 
-    const client = await Client.create({
-      fullName: fullName.trim(),
-      phone: phone || null,
-      email: email || null,
-      gender: gender || null,
-      age: age !== "" && age !== null ? Number(age) : null,
-      address: address || null,
-      knownFrom: knownFrom || null,
-      internalNotes: internalNotes || null,
+    const department =
+      Array.isArray(departments) && departments.length > 0
+        ? departments[0]?.department || null
+        : null;
+
+    const service = await Service.create({
+      name: name.trim(),
+      serviceCode,
+      type,
+      department,
+      price,
+      // Future-proof JSON column (ignored if not present)
+      // meta: { unit, taxPercent, materialCharge, labCharge, providerRates },
     });
 
-    res.status(201).json(client);
+    res.status(201).json(service);
   } catch (err) {
-    console.error("❌ Error creating client:", err);
-    res.status(500).json({
-      error: "Server error creating client",
-      detail: err.message,
-    });
+    console.error("Error creating service:", err);
+    res.status(500).json({ error: "Failed to create service" });
   }
 });
 
 /* ================================
-   COUNT clients
+   DELETE /api/services/:id
+   Delete single service
 ================================ */
-router.get("/count", async (req, res) => {
+router.delete("/:id", async (req, res) => {
   try {
-    const count = await Client.count();
-    res.json({ count });
+    const id = Number(req.params.id);
+    if (!id) {
+      return res.status(400).json({ error: "Invalid service id" });
+    }
+
+    const deleted = await Service.destroy({ where: { id } });
+
+    if (!deleted) {
+      return res.status(404).json({ error: "Service not found" });
+    }
+
+    res.json({ success: true });
   } catch (err) {
-    console.error("Error counting clients:", err);
-    res.status(500).json({ error: "Server error counting clients" });
+    console.error("Error deleting service:", err);
+    res.status(500).json({ error: "Failed to delete service" });
+  }
+});
+
+/* ================================
+   POST /api/services/bulk-delete
+   Delete multiple services
+================================ */
+router.post("/bulk-delete", async (req, res) => {
+  try {
+    const { ids } = req.body;
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({
+        error: "ids array is required",
+      });
+    }
+
+    const deletedCount = await Service.destroy({
+      where: { id: ids },
+    });
+
+    res.json({
+      success: true,
+      deleted: deletedCount,
+    });
+  } catch (err) {
+    console.error("Error bulk deleting services:", err);
+    res.status(500).json({ error: "Failed to delete services" });
   }
 });
 
