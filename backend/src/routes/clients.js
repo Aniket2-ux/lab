@@ -1,9 +1,10 @@
-// backend/src/routes/clients.js
 const express = require("express");
 const router = express.Router();
 const Client = require("../models/Client");
 
-// GET all clients
+/* ================================
+   GET all clients
+================================ */
 router.get("/", async (req, res) => {
   try {
     const clients = await Client.findAll({
@@ -16,7 +17,9 @@ router.get("/", async (req, res) => {
   }
 });
 
-// CREATE client
+/* ================================
+   CREATE client (FIXED)
+================================ */
 router.post("/", async (req, res) => {
   try {
     const {
@@ -38,8 +41,8 @@ router.post("/", async (req, res) => {
       fullName: fullName.trim(),
       phone,
       email,
-      age,
       gender,
+      age: age !== "" && age !== null ? Number(age) : null, // ✅ ONLY FIX
       address,
       knownFrom,
       internalNotes,
@@ -55,7 +58,9 @@ router.post("/", async (req, res) => {
   }
 });
 
-// COUNT clients
+/* ================================
+   COUNT clients
+================================ */
 router.get("/count", async (req, res) => {
   try {
     const count = await Client.count();
