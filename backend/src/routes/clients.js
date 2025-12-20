@@ -18,19 +18,20 @@ router.get("/", async (req, res) => {
 });
 
 /* ================================
-   CREATE client (FIXED)
+   CREATE client (FINAL FIX)
 ================================ */
 router.post("/", async (req, res) => {
   try {
     const {
       fullName,
-      phone = null,
-      email = null,
-      age = null,
-      gender = null,
-      address = null,
-      knownFrom = null,
-      internalNotes = null,
+      phone,
+      email,
+      age,
+      gender,
+      address,
+      knownFrom,
+      internalNotes,
+      // ⛔ ignore extra UI-only fields safely
     } = req.body;
 
     if (!fullName || !fullName.trim()) {
@@ -39,18 +40,18 @@ router.post("/", async (req, res) => {
 
     const client = await Client.create({
       fullName: fullName.trim(),
-      phone,
-      email,
-      gender,
-      age: age !== "" && age !== null ? Number(age) : null, // ✅ ONLY FIX
-      address,
-      knownFrom,
-      internalNotes,
+      phone: phone || null,
+      email: email || null,
+      gender: gender || null,
+      age: age !== "" && age !== null ? Number(age) : null,
+      address: address || null,
+      knownFrom: knownFrom || null,
+      internalNotes: internalNotes || null,
     });
 
     res.status(201).json(client);
   } catch (err) {
-    console.error("Error creating client:", err);
+    console.error("❌ Error creating client:", err);
     res.status(500).json({
       error: "Server error creating client",
       detail: err.message,
