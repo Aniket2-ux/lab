@@ -27,7 +27,7 @@ router.post("/", async (req, res) => {
     const {
       name,
       type = "other",
-      serviceCode = null,
+      serviceCode,
       unit = null,
       price = 0,
       taxPercent = 0,
@@ -37,9 +37,32 @@ router.post("/", async (req, res) => {
       departments = [],
     } = req.body;
 
+    /* ---------- VALIDATION ---------- */
+
     if (!name || !name.trim()) {
       return res.status(400).json({
         error: "Service name is required",
+      });
+    }
+
+    // Auto-generate serviceCode if missing
+    const finalServiceCode =
+      serviceCode && serviceCode.trim()
+        ? serviceCode.trim().toUpperCase()
+        : name
+            .trim()
+            .toUpperCase()
+            .replace(/[^A-Z0-9]+/g, "_")
+            .replace(/^_|_$/g, "");
+
+    // Prevent duplicates
+    const existing = await Service.findOne({
+      where: { serviceCode: finalServiceCode },
+    });
+
+    if (existing) {
+      return res.status(400).json({
+        error: `Service code '${finalServiceCode}' already exists`,
       });
     }
 
@@ -48,13 +71,15 @@ router.post("/", async (req, res) => {
         ? departments[0]?.department || null
         : null;
 
+    /* ---------- CREATE ---------- */
+
     const service = await Service.create({
       name: name.trim(),
-      serviceCode,
+      serviceCode: finalServiceCode,
       type,
       department,
       price,
-      // Future-proof JSON column (ignored if not present)
+      // Future-ready fields (enable later if column exists)
       // meta: { unit, taxPercent, materialCharge, labCharge, providerRates },
     });
 
@@ -67,7 +92,6 @@ router.post("/", async (req, res) => {
 
 /* ================================
    DELETE /api/services/:id
-   Delete single service
 ================================ */
 router.delete("/:id", async (req, res) => {
   try {
@@ -91,7 +115,6 @@ router.delete("/:id", async (req, res) => {
 
 /* ================================
    POST /api/services/bulk-delete
-   Delete multiple services
 ================================ */
 router.post("/bulk-delete", async (req, res) => {
   try {
