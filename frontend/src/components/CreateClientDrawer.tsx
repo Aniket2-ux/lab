@@ -9,181 +9,120 @@ const API_BASE =
 type Props = {
   onClose: () => void;
   onCreated?: (client: any) => void;
-  initialName?: string;
 };
 
-export default function CreateClientDrawer({
-  onClose,
-  onCreated,
-  initialName = "",
-}: Props) {
+export default function CreateClientDrawer({ onClose, onCreated }: Props) {
   const router = useRouter();
 
-  const [fullName, setFullName] = useState(initialName);
+  /* ---------- BASIC ---------- */
+  const [fullName, setFullName] = useState("");
   const [age, setAge] = useState<number | "">("");
-  const [gender, setGender] = useState<string | "">("");
+  const [gender, setGender] = useState("");
   const [phone, setPhone] = useState("");
+
+  /* ---------- EXTRA ---------- */
+  const [address, setAddress] = useState("");
+  const [panVatNumber, setPanVatNumber] = useState("");
+  const [insuranceNumber, setInsuranceNumber] = useState("");
+  const [nationalIdNumber, setNationalIdNumber] = useState("");
+  const [registrationNumber, setRegistrationNumber] = useState("");
+  const [internalNotes, setInternalNotes] = useState("");
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function handleCreate() {
+  async function handleSave() {
     setError(null);
 
     if (!fullName.trim()) {
-      setError("Name is required");
+      setError("Client name is required");
       return;
     }
 
     setLoading(true);
     try {
-      const payload = {
-        fullName: fullName.trim(),
-        age: age === "" ? null : Number(age),
-        gender: gender || null,
-        phone: phone || null,
-
-        // ✅ REQUIRED BY BACKEND
-        serviceCode: "WALKIN",
-
-        // optional / future-safe fields
-        email: null,
-        address: null,
-        knownFrom: null,
-        internalNotes: null,
-      };
-
       const res = await fetch(`${API_BASE}/api/clients`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fullName,
+          age: age === "" ? null : age,
+          gender: gender || null,
+          phone: phone || null,
+          address: address || null,
+          panVatNumber: panVatNumber || null,
+          insuranceNumber: insuranceNumber || null,
+          nationalIdNumber: nationalIdNumber || null,
+          registrationNumber: registrationNumber || null,
+          internalNotes: internalNotes || null,
+        }),
       });
 
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
 
-      if (!res.ok) {
-        throw new Error(data.error || `HTTP ${res.status}`);
-      }
-
-      if (onCreated) onCreated(data);
-
+      onCreated?.(data);
       onClose();
-
-      // redirect to billing with new client
-      if (data?.id) {
-        router.push(`/billing?newClientId=${data.id}`);
-      } else {
-        router.push("/billing");
-      }
-    } catch (e: any) {
-      console.error("Create client failed", e);
-      setError(e.message || "Failed to create client");
+      router.refresh();
+    } catch (err: any) {
+      setError(err.message || "Failed to save client");
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div style={overlay}>
-      <div style={drawer}>
-        <header style={header}>
-          <h3>Create Client</h3>
-          <button onClick={onClose} style={closeBtn}>×</button>
-        </header>
+    <div className="drawer-overlay">
+      <div className="drawer">
+        <h3>Create Client</h3>
 
-        <label>Full name</label>
-        <input
-          value={fullName}
-          onChange={(e) => setFullName(e.target.value)}
-          style={inputStyle}
-        />
+        <input placeholder="Full Name" value={fullName}
+          onChange={(e) => setFullName(e.target.value)} />
 
-        <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-          <div style={{ flex: 1 }}>
-            <label>Age</label>
-            <input
-              type="number"
-              min={0}
-              value={age === "" ? "" : age}
-              onChange={(e) =>
-                setAge(e.target.value === "" ? "" : Number(e.target.value))
-              }
-              style={inputStyle}
-            />
-          </div>
+        <div className="row">
+          <input type="number" placeholder="Age"
+            value={age}
+            onChange={(e) => setAge(e.target.value === "" ? "" : Number(e.target.value))} />
 
-          <div style={{ flex: 1 }}>
-            <label>Gender</label>
-            <select
-              value={gender}
-              onChange={(e) => setGender(e.target.value)}
-              style={inputStyle}
-            >
-              <option value="">Select</option>
-              <option>Male</option>
-              <option>Female</option>
-              <option>Other</option>
-            </select>
-          </div>
+          <select value={gender} onChange={(e) => setGender(e.target.value)}>
+            <option value="">Gender</option>
+            <option>Male</option>
+            <option>Female</option>
+            <option>Other</option>
+          </select>
         </div>
 
-        <label style={{ marginTop: 10 }}>Phone</label>
-        <input
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          style={inputStyle}
-        />
+        <input placeholder="Phone" value={phone}
+          onChange={(e) => setPhone(e.target.value)} />
 
-        {error && (
-          <div style={{ color: "red", marginTop: 10 }}>
-            {error}
-          </div>
-        )}
+        <input placeholder="Address" value={address}
+          onChange={(e) => setAddress(e.target.value)} />
 
-        <footer style={{ marginTop: 16, display: "flex", gap: 8 }}>
+        <input placeholder="PAN / VAT Number" value={panVatNumber}
+          onChange={(e) => setPanVatNumber(e.target.value)} />
+
+        <input placeholder="Insurance Number" value={insuranceNumber}
+          onChange={(e) => setInsuranceNumber(e.target.value)} />
+
+        <input placeholder="National Identity Number" value={nationalIdNumber}
+          onChange={(e) => setNationalIdNumber(e.target.value)} />
+
+        <input placeholder="Registration Number" value={registrationNumber}
+          onChange={(e) => setRegistrationNumber(e.target.value)} />
+
+        <textarea placeholder="Internal Notes"
+          value={internalNotes}
+          onChange={(e) => setInternalNotes(e.target.value)} />
+
+        {error && <p className="error">{error}</p>}
+
+        <div className="actions">
           <button onClick={onClose}>Cancel</button>
-          <button onClick={handleCreate} disabled={loading}>
-            {loading ? "Creating..." : "Create Client"}
+          <button onClick={handleSave} disabled={loading}>
+            {loading ? "Saving..." : "Save"}
           </button>
-        </footer>
+        </div>
       </div>
     </div>
   );
 }
-
-/* styles */
-const overlay = {
-  position: "fixed",
-  inset: 0,
-  background: "rgba(0,0,0,0.35)",
-  zIndex: 80,
-  display: "flex",
-  justifyContent: "flex-end",
-} as const;
-
-const drawer = {
-  width: 420,
-  background: "#fff",
-  padding: 20,
-  height: "100%",
-} as const;
-
-const header = {
-  display: "flex",
-  justifyContent: "space-between",
-} as const;
-
-const closeBtn = {
-  fontSize: 20,
-  border: "none",
-  background: "transparent",
-  cursor: "pointer",
-} as const;
-
-const inputStyle = {
-  width: "100%",
-  padding: 8,
-  borderRadius: 6,
-  border: "1px solid #e5e7eb",
-} as const;
