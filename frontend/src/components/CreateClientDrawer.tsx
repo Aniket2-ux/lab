@@ -42,7 +42,10 @@ export default function CreateClientDrawer({
         gender: gender || null,
         phone: phone || null,
 
-        // future-safe fields
+        // ✅ REQUIRED BY BACKEND
+        serviceCode: "WALKIN",
+
+        // optional / future-safe fields
         email: null,
         address: null,
         knownFrom: null,
@@ -51,23 +54,25 @@ export default function CreateClientDrawer({
 
       const res = await fetch(`${API_BASE}/api/clients`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(payload),
       });
 
+      const data = await res.json();
+
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
         throw new Error(data.error || `HTTP ${res.status}`);
       }
 
-      const created = await res.json();
-
-      if (onCreated) onCreated(created);
+      if (onCreated) onCreated(data);
 
       onClose();
 
-      if (created?.id) {
-        router.push(`/billing?newClientId=${created.id}`);
+      // redirect to billing with new client
+      if (data?.id) {
+        router.push(`/billing?newClientId=${data.id}`);
       } else {
         router.push("/billing");
       }
@@ -88,7 +93,11 @@ export default function CreateClientDrawer({
         </header>
 
         <label>Full name</label>
-        <input value={fullName} onChange={(e) => setFullName(e.target.value)} style={inputStyle} />
+        <input
+          value={fullName}
+          onChange={(e) => setFullName(e.target.value)}
+          style={inputStyle}
+        />
 
         <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
           <div style={{ flex: 1 }}>
@@ -97,13 +106,20 @@ export default function CreateClientDrawer({
               type="number"
               min={0}
               value={age === "" ? "" : age}
-              onChange={(e) => setAge(e.target.value === "" ? "" : Number(e.target.value))}
+              onChange={(e) =>
+                setAge(e.target.value === "" ? "" : Number(e.target.value))
+              }
               style={inputStyle}
             />
           </div>
+
           <div style={{ flex: 1 }}>
             <label>Gender</label>
-            <select value={gender} onChange={(e) => setGender(e.target.value)} style={inputStyle}>
+            <select
+              value={gender}
+              onChange={(e) => setGender(e.target.value)}
+              style={inputStyle}
+            >
               <option value="">Select</option>
               <option>Male</option>
               <option>Female</option>
@@ -113,11 +129,19 @@ export default function CreateClientDrawer({
         </div>
 
         <label style={{ marginTop: 10 }}>Phone</label>
-        <input value={phone} onChange={(e) => setPhone(e.target.value)} style={inputStyle} />
+        <input
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          style={inputStyle}
+        />
 
-        {error && <div style={{ color: "red", marginTop: 10 }}>{error}</div>}
+        {error && (
+          <div style={{ color: "red", marginTop: 10 }}>
+            {error}
+          </div>
+        )}
 
-        <footer style={{ marginTop: 16 }}>
+        <footer style={{ marginTop: 16, display: "flex", gap: 8 }}>
           <button onClick={onClose}>Cancel</button>
           <button onClick={handleCreate} disabled={loading}>
             {loading ? "Creating..." : "Create Client"}
@@ -129,8 +153,37 @@ export default function CreateClientDrawer({
 }
 
 /* styles */
-const overlay = { position: "fixed", inset: 0, background: "rgba(0,0,0,0.35)", zIndex: 80, display: "flex", justifyContent: "flex-end" } as const;
-const drawer = { width: 420, background: "#fff", padding: 20, height: "100%" } as const;
-const header = { display: "flex", justifyContent: "space-between" } as const;
-const closeBtn = { fontSize: 20, border: "none", background: "transparent" } as const;
-const inputStyle = { width: "100%", padding: 8, borderRadius: 6, border: "1px solid #e5e7eb" } as const;
+const overlay = {
+  position: "fixed",
+  inset: 0,
+  background: "rgba(0,0,0,0.35)",
+  zIndex: 80,
+  display: "flex",
+  justifyContent: "flex-end",
+} as const;
+
+const drawer = {
+  width: 420,
+  background: "#fff",
+  padding: 20,
+  height: "100%",
+} as const;
+
+const header = {
+  display: "flex",
+  justifyContent: "space-between",
+} as const;
+
+const closeBtn = {
+  fontSize: 20,
+  border: "none",
+  background: "transparent",
+  cursor: "pointer",
+} as const;
+
+const inputStyle = {
+  width: "100%",
+  padding: 8,
+  borderRadius: 6,
+  border: "1px solid #e5e7eb",
+} as const;
