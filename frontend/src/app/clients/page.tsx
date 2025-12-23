@@ -6,8 +6,8 @@ import { useRouter } from "next/navigation";
 import Sidebar from "../../components/Sidebar";
 import HeaderBar from "../../components/HeaderBar";
 
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE || "http://145.223.23.176:5000";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE!;
+
 
 
 

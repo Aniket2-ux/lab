@@ -39,8 +39,8 @@ const TYPE_OPTIONS = [
 const typeLabel = (value: string) =>
   TYPE_OPTIONS.find((t) => t.value === value)?.label ?? value;
 
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE || "http://localhost:5000";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE!;
+
 
 // ---- Types for create-service form ----
 type ProviderRate = {
