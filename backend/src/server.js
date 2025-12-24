@@ -110,9 +110,11 @@ app.get("/", (_req, res) => {
 (async () => {
   try {
     await sequelize.authenticate();
+    console.log("✅ Database connected");
 
-    // ✅ SAFE SYNC (no data loss)
-    await sequelize.sync({ alter: false });
+    // 🔥 THIS IS THE FIX
+    await sequelize.sync({ alter: true });
+    console.log("✅ Database synced");
 
     app.listen(PORT, "0.0.0.0", () => {
       console.log(`🚀 Backend running on http://0.0.0.0:${PORT}`);
@@ -121,3 +123,4 @@ app.get("/", (_req, res) => {
     console.error("❌ Server failed to start:", err);
   }
 })();
+
