@@ -3,9 +3,8 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE ||
-  "http://145.223.23.176:5000"; // VPS public IP
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE!;
+
 
 
 type Props = {
