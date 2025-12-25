@@ -8,14 +8,11 @@ services:
       POSTGRES_USER: okhati
       POSTGRES_PASSWORD: okhati_pass
       POSTGRES_DB: okhati_db
-    ports:
-      - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
 
   backend:
-    build:
-      context: ./backend
+    build: ./backend
     restart: always
     ports:
       - "5000:5000"
@@ -29,8 +26,7 @@ services:
       - db
 
   frontend:
-    build:
-      context: ./frontend
+    build: ./frontend
     restart: always
     ports:
       - "3000:3000"
