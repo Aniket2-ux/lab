@@ -3,24 +3,24 @@ const express = require("express");
 const router = express.Router();
 const Client = require("../models/Client");
 
-/* ================================
-   GET /api/clients
-================================ */
-router.get("/", async (req, res) => {
+/**
+ * GET /api/clients
+ */
+router.get("/", async (_req, res) => {
   try {
     const clients = await Client.findAll({
       order: [["createdAt", "DESC"]],
     });
     res.json(clients);
   } catch (err) {
-    console.error("ERROR FETCHING CLIENTS:", err);
+    console.error("FETCH CLIENTS ERROR:", err);
     res.status(500).json({ error: "Failed to fetch clients" });
   }
 });
 
-/* ================================
-   POST /api/clients
-================================ */
+/**
+ * POST /api/clients
+ */
 router.post("/", async (req, res) => {
   try {
     const {
@@ -34,9 +34,7 @@ router.post("/", async (req, res) => {
     } = req.body;
 
     if (!fullName || !fullName.trim()) {
-      return res.status(400).json({
-        error: "Full name is required",
-      });
+      return res.status(400).json({ error: "Full name is required" });
     }
 
     const client = await Client.create({
@@ -52,21 +50,17 @@ router.post("/", async (req, res) => {
     res.status(201).json(client);
   } catch (err) {
     console.error("CREATE CLIENT ERROR:", err);
-    res.status(500).json({
-      error: err.message || "Failed to create client",
-    });
+    res.status(500).json({ error: err.message });
   }
 });
 
-/* ================================
-   DELETE /api/clients/:id
-================================ */
+/**
+ * DELETE /api/clients/:id
+ */
 router.delete("/:id", async (req, res) => {
   try {
     const id = Number(req.params.id);
-    if (!id) {
-      return res.status(400).json({ error: "Invalid client id" });
-    }
+    if (!id) return res.status(400).json({ error: "Invalid client id" });
 
     const deleted = await Client.destroy({ where: { id } });
     if (!deleted) {
