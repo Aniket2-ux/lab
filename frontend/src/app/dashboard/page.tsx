@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "../../components/Sidebar";
 import HeaderBar from "../../components/HeaderBar";
+import { API_BASE } from "@/lib/apiBase";
+
 
 type DateInfo = {
   formattedDate: string;
@@ -25,7 +27,7 @@ type Stats = {
   invoiceCount: number;
 };
 
-const API_BASE = "http://145.223.23.176:5000";
+
 
 
 

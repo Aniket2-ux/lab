@@ -1,8 +1,4 @@
-// frontend/src/lib/apiBase.ts
-
-const baseUrl =
-  process.env.NEXT_PUBLIC_API_BASE ||
-  "http://145.223.23.176:5000";
+import { API_BASE } from "./apiBase";
 
 export async function apiClient<T = any>(
   path: string,
@@ -14,7 +10,7 @@ export async function apiClient<T = any>(
       ? localStorage.getItem("token")
       : null;
 
-  const res = await fetch(`${baseUrl}${path}`, {
+  const res = await fetch(`${API_BASE}${path}`, {
     ...init,
     headers: {
       "Content-Type": "application/json",
