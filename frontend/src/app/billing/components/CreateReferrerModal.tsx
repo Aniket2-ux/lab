@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { apiClient } from "@/lib/apiClient";
 
 /* ================== STYLES ================== */
 const backdrop: React.CSSProperties = {
@@ -113,17 +114,13 @@ export default function CreateReferrerModal({
     try {
       setLoading(true);
 
-      const res = await fetch("http://localhost:5000/api/referrers", {
+      // ✅ apiClient throws error automatically if request fails
+      await apiClient("/api/referrers", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(referrerObj),
       });
-
-      if (!res.ok) throw new Error();
-
-      // optional: const data = await res.json();
     } catch {
-      // LOCAL STORAGE FALLBACK
+      // ✅ LOCAL STORAGE FALLBACK
       const raw = localStorage.getItem("okhati_referrers");
       const arr = raw ? JSON.parse(raw) : [];
       arr.unshift(referrerObj);
