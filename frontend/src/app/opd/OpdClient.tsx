@@ -1,4 +1,5 @@
 "use client";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE!;
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
@@ -42,8 +43,8 @@ export default function OpdClient() {
       setSaving(true);
       setError(null);
 
-      const res = await fetch(
-        "http://backend:5000/api/prescriptions",
+      const res = await
+      fetch(`${API_BASE}/api/prescriptions`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

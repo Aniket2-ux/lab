@@ -5,8 +5,12 @@ import { useRouter } from "next/navigation";
 import Sidebar from "../../components/Sidebar";
 import HeaderBar from "../../components/HeaderBar";
 
+/* ✅ ENV-BASED API */
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE!;
+
 export default function ChangePasswordPage() {
   const router = useRouter();
+
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -43,14 +47,17 @@ export default function ChangePasswordPage() {
         return;
       }
 
-      const res = await fetch("http://localhost:5000/api/auth/change-password", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ currentPassword, newPassword }),
-      });
+      const res = await fetch(
+        `${API_BASE}/api/auth/change-password`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ currentPassword, newPassword }),
+        }
+      );
 
       const data = await res.json();
 
@@ -89,7 +96,9 @@ export default function ChangePasswordPage() {
             boxShadow: "0 4px 12px rgba(0,0,0,0.06)",
           }}
         >
-          <h2 style={{ marginTop: 0, marginBottom: 16 }}>Change Password</h2>
+          <h2 style={{ marginTop: 0, marginBottom: 16 }}>
+            Change Password
+          </h2>
 
           <form onSubmit={handleSubmit}>
             <label style={labelStyle}>

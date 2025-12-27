@@ -67,7 +67,8 @@
   };
 
   /* ------------ Config ------------ */
-  const API_BASE = (process.env.NEXT_PUBLIC_API_BASE as string) || "http://localhost:5000";
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE!;
+
   const LOCAL_STORAGE_KEY = "okhati_bills";
 
   /* ------------ Component ------------ */

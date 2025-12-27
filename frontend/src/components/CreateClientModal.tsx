@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE!;
 
 export type Client = {
   id: number;
@@ -152,7 +153,7 @@ export default function CreateClientModal({
         registrationNumber: form.registrationNumber || null,
       };
 
-      const res = await fetch("http://localhost:5000/api/clients", {
+      const res = await fetch(`${API_BASE}/api/clients`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
