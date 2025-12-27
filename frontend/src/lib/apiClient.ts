@@ -1,20 +1,26 @@
 import { API_BASE } from "./apiBase";
 
-export async function apiClient<T>(
+export default async function apiClient<T>(
   path: string,
-  options?: RequestInit
+  options: RequestInit = {}
 ): Promise<T> {
+  const token =
+    typeof window !== "undefined"
+      ? localStorage.getItem("token")
+      : null;
+
   const res = await fetch(`${API_BASE}${path}`, {
+    ...options,
     headers: {
       "Content-Type": "application/json",
-      ...(options?.headers || {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(options.headers || {}),
     },
-    ...options,
   });
 
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(text || res.statusText);
+    throw new Error(text || `HTTP ${res.status}`);
   }
 
   return res.json();

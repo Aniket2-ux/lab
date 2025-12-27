@@ -1,7 +1,3 @@
-export const API_BASE = (() => {
-  const base = process.env.NEXT_PUBLIC_API_BASE;
-  if (!base) {
-    throw new Error("NEXT_PUBLIC_API_BASE is not defined");
-  }
-  return base;
-})();
+export const API_BASE =
+  process.env.NEXT_PUBLIC_API_BASE ??
+  "http://145.223.23.176:5000";

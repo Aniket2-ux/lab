@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { apiClient } from "@/lib/apiClient";
+import apiClient from "@/lib/apiClient";
+
 
 export default function BillDetailTopActions({
   billId,
