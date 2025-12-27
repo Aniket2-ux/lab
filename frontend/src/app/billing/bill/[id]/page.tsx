@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import apiClient from "@/lib/apiClient";
-
+import { apiClient } from "@/lib/apiClient";
 
 export default function BillDetailTopActions({
   billId,
@@ -23,7 +22,7 @@ export default function BillDetailTopActions({
 
     try {
       // ✅ USE apiClient (NO localhost, NO manual headers)
-      const data = await apiClient<any>(
+      const data = await apiClient.post <any>(
         `/api/billing/${billId}/credit-note`,
         {
           method: "POST",
