@@ -1,13 +1,16 @@
 "use client";
-// snippets to add to your bill detail page component
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { apiClient } from "@/lib/apiClient";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:5000";
-
-export default function BillDetailTopActions({ billId }: { billId: string | number }) {
+export default function BillDetailTopActions({
+  billId,
+}: {
+  billId: string | number;
+}) {
   const router = useRouter();
+
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [loadingCredit, setLoadingCredit] = useState(false);
@@ -18,35 +21,45 @@ export default function BillDetailTopActions({ billId }: { billId: string | numb
     setLoadingCredit(true);
 
     try {
-      const res = await fetch(`${API_BASE}/api/billing/${billId}/credit-note`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        // optionally pass items if you want to customize:
-        body: JSON.stringify({ note: "Created from UI", issueDate: new Date().toISOString().slice(0,10) }),
-      });
+      // ✅ USE apiClient (NO localhost, NO manual headers)
+      const data = await apiClient<any>(
+        `/api/billing/${billId}/credit-note`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            note: "Created from UI",
+            issueDate: new Date().toISOString().slice(0, 10),
+          }),
+        }
+      );
 
-      const data = await res.json().catch(() => ({}));
+      // ---- Normalize backend responses safely ----
+      const creditNumber =
+        data.creditNumber ??
+        data.number ??
+        data.creditNo ??
+        data.id;
 
-      if (!res.ok || !data.ok) {
-        // backend returned an informative "no credit note model" message → fallback local flow
-        const message = (data && (data.message || data.detail)) || `Credit note failed — check backend (${res.status})`;
-        setActionError(message);
-        // show the local fallback suggestion
-        return;
-      }
+      const previewUrl = data.previewUrl ?? data.url ?? null;
+      const creditNoteId = data.creditNoteId ?? data.id ?? null;
 
-      setActionMessage(`Credit note created (${data.creditNumber}).`);
-      // open preview route if present
-      if (data.previewUrl) {
-        // open in new tab
-        window.open(data.previewUrl, "_blank");
-      } else {
-        // navigate to a local route if you have one
-        router.push(`/billing/credit-notes/${data.creditNoteId}`);
+      setActionMessage(
+        creditNumber
+          ? `Credit note created (${creditNumber}).`
+          : "Credit note created."
+      );
+
+      if (previewUrl) {
+        window.open(previewUrl, "_blank");
+      } else if (creditNoteId) {
+        router.push(`/billing/credit-notes/${creditNoteId}`);
       }
     } catch (err: any) {
       console.error("Credit note API failed", err);
-      setActionError("Credit note failed — check backend or use local flow.");
+      setActionError(
+        err?.message ||
+          "Credit note failed — check backend or permissions."
+      );
     } finally {
       setLoadingCredit(false);
     }
@@ -57,15 +70,22 @@ export default function BillDetailTopActions({ billId }: { billId: string | numb
       <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
         <button className="btn btn-muted">Cancel</button>
 
-        <button className="btn btn-outline" onClick={() => { navigator.clipboard?.writeText(window.location.href); }}>
+        <button
+          className="btn btn-outline"
+          onClick={() =>
+            navigator.clipboard?.writeText(window.location.href)
+          }
+        >
           Copy
         </button>
 
-        <button className="btn btn-primary" onClick={handleCreateCreditNote} disabled={loadingCredit}>
+        <button
+          className="btn btn-primary"
+          onClick={handleCreateCreditNote}
+          disabled={loadingCredit}
+        >
           {loadingCredit ? "Creating..." : "Credit Note"}
         </button>
-
-        {/* other top actions */}
       </div>
 
       {actionMessage && (

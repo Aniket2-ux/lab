@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { apiClient } from "@/lib/apiClient";
 
 /* ---------- Types ---------- */
 
@@ -41,9 +42,6 @@ type NewClient = {
   passportIssueDateBs: string;
   passportExpiryDateBs: string;
 };
-
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE || "http://localhost:5000";
 
 /* ---------- Component ---------- */
 
@@ -115,9 +113,9 @@ export default function CreateClientFromBilling({
       setSaving(true);
       setError(null);
 
-      const res = await fetch(`${API_BASE}/api/clients`, {
+      // ✅ Updated to use apiClient
+      const created = await apiClient<Client>("/api/clients", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           fullName: form.fullName,
           phone: form.phone || form.additionalPhone || null,
@@ -130,23 +128,14 @@ export default function CreateClientFromBilling({
         }),
       });
 
-      if (!res.ok) throw new Error("Failed to save client");
-
-      const created: Client = await res.json();
       onClientCreated(created);
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
       setError("Failed to save client");
     } finally {
       setSaving(false);
     }
   };
-
-  /* ============================================================
-     ✅ IMPORTANT FIX:
-     ❌ NO `if (!open) return null`
-     ✅ Conditional rendering INSIDE JSX
-     ============================================================ */
 
   return (
     <>
@@ -204,7 +193,7 @@ export default function CreateClientFromBilling({
             </div>
 
             {error && (
-              <div style={{ color: "#b91c1c", fontSize: 13 }}>
+              <div style={{ color: "#b91c1c", fontSize: 13, marginTop: 12 }}>
                 {error}
               </div>
             )}
@@ -309,7 +298,7 @@ const overlay: React.CSSProperties = {
   background: "rgba(0,0,0,0.35)",
   display: "flex",
   justifyContent: "flex-end",
-  zIndex: 50,
+  zIndex: 100,
 };
 
 const drawer: React.CSSProperties = {
@@ -343,7 +332,7 @@ const footer: React.CSSProperties = {
   display: "flex",
   justifyContent: "flex-end",
   gap: 8,
-  marginTop: 16,
+  marginTop: 24,
 };
 
 const labelStyle: React.CSSProperties = {
