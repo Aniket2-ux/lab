@@ -93,6 +93,7 @@ app.use("/api", (_req, res) => {
   res.status(404).json({ error: "API route not found" });
 });
 
+
 app.get("/", (_req, res) => {
   res.send("Okhati clone backend running");
 });
@@ -109,8 +110,9 @@ app.get("/", (_req, res) => {
     console.log("✅ Database synced");
 
     app.listen(PORT, "0.0.0.0", () => {
-      console.log(`🚀 Backend running on http://0.0.0.0:${PORT}`);
-    });
+  console.log(`Server running on port ${PORT}`);
+});
+
   } catch (err) {
     console.error("❌ Server failed to start:", err);
     process.exit(1);
