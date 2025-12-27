@@ -25,7 +25,9 @@ type Stats = {
   invoiceCount: number;
 };
 
-const API_BASE = "http://145.223.23.176:5000";
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_BASE || "http://localhost:5000";
+
 
 const getToken = () => {
   if (typeof window === "undefined") return null;
@@ -72,10 +74,11 @@ export default function DashboardPage() {
        };
 
       const [healthRes, presCountRes, billingRes] = await Promise.all([
-      fetch(`${API_BASE}/api/health`, { headers }),
-      fetch(`${API_BASE}/api/prescriptions/count`, { headers }),
-      fetch(`${API_BASE}/api/billing/summary`, { headers }),
-    ]);
+  fetch(`${API_BASE}/api/health`), // 👈 NO AUTH HEADER
+  fetch(`${API_BASE}/api/prescriptions/count`, { headers }),
+  fetch(`${API_BASE}/api/billing/summary`, { headers }),
+]);
+
 
 
         // health
