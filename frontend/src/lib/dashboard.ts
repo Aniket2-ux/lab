@@ -1,5 +1,3 @@
-// frontend/src/lib/dashboard.ts
-
 import { apiClient } from "@/lib/apiClient";
 
 export type DashboardSummary = {
@@ -8,5 +6,7 @@ export type DashboardSummary = {
 };
 
 export async function fetchDashboardSummary() {
-  return apiClient.get<DashboardSummary>("/api/billing/summary");
+  return apiClient<DashboardSummary>(
+    "/api/billing/summary"
+  );
 }

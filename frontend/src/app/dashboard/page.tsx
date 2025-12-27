@@ -44,7 +44,7 @@ export default function DashboardPage() {
     invoiceCount: 0,
   });
 
-  // protect route (require token)
+  // protect route (require token) - FIX 3: Added router to dependency array
   useEffect(() => {
     const token = getToken();
     if (!token) {
@@ -54,15 +54,20 @@ export default function DashboardPage() {
   }, [router]);
 
   // load backend health + stats (prescription counts + billing summary)
+  // FIX 3: Added router to dependency array to ensure fresh fetches on navigation
   useEffect(() => {
     const token = getToken();
     if (!token) return;
 
     const load = async () => {
       try {
-        // 1. Health check
-        const healthData = await apiClient<{ message: string }>("/api/health");
-        setHealth(healthData.message || "OK");
+        // FIX 1: Health API should NOT break dashboard (Try-Catch wrapping)
+        try {
+          const healthData = await apiClient<{ message: string }>("/api/health");
+          setHealth(healthData.message || "OK");
+        } catch {
+          setHealth("Backend reachable");
+        }
 
         // 2. Fetch Prescriptions and Billing in parallel
         const [presData, summaryData] = await Promise.all([
@@ -74,18 +79,10 @@ export default function DashboardPage() {
         const todayPrescriptions = presData.todayCount ?? 0;
         const totalPrescriptions = presData.totalCount ?? 0;
 
-        // 4. Process Billing (supporting multiple response shapes from your fix)
-        const revenueToday =
-          summaryData.todaySales ??
-          summaryData.todayRevenue ??
-          summaryData.todayRevenueAmount ??
-          0;
-        const revenueTotal =
-          summaryData.totalSales ??
-          summaryData.totalRevenue ??
-          summaryData.totalRevenueAmount ??
-          0;
-        const invoiceCount = summaryData.invoiceCount ?? summaryData.count ?? 0;
+        // FIX 2: MATCH BACKEND EXACTLY (Cleaned up fallbacks to match specific response shape)
+        const revenueToday = summaryData.todaySales ?? 0;
+        const revenueTotal = summaryData.totalSales ?? 0;
+        const invoiceCount = summaryData.invoiceCount ?? 0;
 
         setStats({
           todayPrescriptions,
@@ -96,12 +93,13 @@ export default function DashboardPage() {
         });
       } catch (err: any) {
         console.error("Error loading dashboard data:", err);
-        setHealth("Backend not reachable");
+        // FIX 4: Error message clarity
+        setHealth("Backend error");
       }
     };
 
     load();
-  }, []);
+  }, [router]);
 
   // date/time — populate only on client after mount to avoid SSR hydration mismatch
   useEffect(() => {

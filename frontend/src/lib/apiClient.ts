@@ -1,18 +1,23 @@
-// frontend/src/lib/apiClient.ts
-
 const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE || "http://145.223.23.176:5000";
+  typeof window !== "undefined"
+    ? process.env.NEXT_PUBLIC_API_BASE
+    : process.env.NEXT_PUBLIC_API_BASE;
 
-async function request<T>(
-  url: string,
+if (!API_BASE) {
+  throw new Error("NEXT_PUBLIC_API_BASE is not defined");
+}
+
+export async function apiClient<T>(
+  path: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const res = await fetch(`${API_BASE}${url}`, {
+  const res = await fetch(`${API_BASE}${path}`, {
+    ...options,
     headers: {
       "Content-Type": "application/json",
       ...(options.headers || {}),
     },
-    ...options,
+    cache: "no-store", // 🚨 IMPORTANT: disable Next cache
   });
 
   if (!res.ok) {
@@ -21,19 +26,3 @@ async function request<T>(
 
   return res.json();
 }
-
-export const apiClient = {
-  get: <T>(url: string) => request<T>(url),
-  post: <T>(url: string, body?: any) =>
-    request<T>(url, {
-      method: "POST",
-      body: JSON.stringify(body),
-    }),
-  put: <T>(url: string, body?: any) =>
-    request<T>(url, {
-      method: "PUT",
-      body: JSON.stringify(body),
-    }),
-  delete: <T>(url: string) =>
-    request<T>(url, { method: "DELETE" }),
-};

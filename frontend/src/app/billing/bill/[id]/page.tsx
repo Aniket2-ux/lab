@@ -22,7 +22,7 @@ export default function BillDetailTopActions({
 
     try {
       // ✅ USE apiClient (NO localhost, NO manual headers)
-      const data = await apiClient.post <any>(
+      const data = await apiClient <any>(
         `/api/billing/${billId}/credit-note`,
         {
           method: "POST",
