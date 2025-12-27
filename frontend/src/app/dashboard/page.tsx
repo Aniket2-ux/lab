@@ -2,10 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Sidebar from "../../components/Sidebar";
-import HeaderBar from "../../components/HeaderBar";
-import { API_BASE } from "@/lib/apiBase";
-
+import Sidebar from "@/components/Sidebar";
+import HeaderBar from "@/components/HeaderBar";
+import { apiClient } from "@/lib/apiClient";
 
 type DateInfo = {
   formattedDate: string;
@@ -27,16 +26,10 @@ type Stats = {
   invoiceCount: number;
 };
 
-
-
-
-
 const getToken = () => {
   if (typeof window === "undefined") return null;
   return localStorage.getItem("token");
 };
-
-
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -52,83 +45,55 @@ export default function DashboardPage() {
   });
 
   // protect route (require token)
- useEffect(() => {
-  const token = getToken();
-  if (!token) {
-    router.replace("/");
-    return;
-  }
-}, [router]);
-
+  useEffect(() => {
+    const token = getToken();
+    if (!token) {
+      router.replace("/");
+      return;
+    }
+  }, [router]);
 
   // load backend health + stats (prescription counts + billing summary)
   useEffect(() => {
     const token = getToken();
-     if (!token) return;
- 
-  
+    if (!token) return;
+
     const load = async () => {
       try {
-     
-
-       const headers = {
-       Authorization: `Bearer ${token}`,
-       };
-
-      const [healthRes, presCountRes, billingRes] = await Promise.all([
-  fetch(`${API_BASE}/api/health`), // 👈 NO AUTH HEADER
-  fetch(`${API_BASE}/api/prescriptions/count`, { headers }),
-  fetch(`${API_BASE}/api/billing/summary`, { headers }),
-]);
-
-
-
-        // health
-        if (!healthRes.ok) {
-          const text = await healthRes.text().catch(() => "");
-          throw new Error("Health check failed: " + (text || healthRes.status));
-        }
-        const healthData = await healthRes.json();
+        // 1. Health check
+        const healthData = await apiClient<{ message: string }>("/api/health");
         setHealth(healthData.message || "OK");
 
-        // prescriptions count
-        if (!presCountRes.ok) {
-          const text = await presCountRes.text().catch(() => "");
-          console.warn("Pres count fetch failed:", text || presCountRes.status);
-        } else {
-          const presData = await presCountRes.json();
-          const todayPrescriptions = presData.todayCount ?? 0;
-          const totalPrescriptions = presData.totalCount ?? 0;
-          setStats((s) => ({ ...s, todayPrescriptions, totalPrescriptions }));
-        }
+        // 2. Fetch Prescriptions and Billing in parallel
+        const [presData, summaryData] = await Promise.all([
+          apiClient<any>("/api/prescriptions/count"),
+          apiClient<any>("/api/billing/summary"),
+        ]);
 
-        // billing summary (supports multiple response shapes)
-        if (!billingRes.ok) {
-          const text = await billingRes.text().catch(() => "");
-          console.warn("Billing summary fetch failed:", text || billingRes.status);
-        } else {
-          const summaryData = await billingRes.json();
+        // 3. Process Prescriptions
+        const todayPrescriptions = presData.todayCount ?? 0;
+        const totalPrescriptions = presData.totalCount ?? 0;
 
-          // support various response shapes
-          const revenueToday =
-            summaryData.todaySales ??
-            summaryData.todayRevenue ??
-            summaryData.todayRevenueAmount ??
-            0;
-          const revenueTotal =
-            summaryData.totalSales ??
-            summaryData.totalRevenue ??
-            summaryData.totalRevenueAmount ??
-            0;
-          const invoiceCount = summaryData.invoiceCount ?? summaryData.count ?? 0;
+        // 4. Process Billing (supporting multiple response shapes from your fix)
+        const revenueToday =
+          summaryData.todaySales ??
+          summaryData.todayRevenue ??
+          summaryData.todayRevenueAmount ??
+          0;
+        const revenueTotal =
+          summaryData.totalSales ??
+          summaryData.totalRevenue ??
+          summaryData.totalRevenueAmount ??
+          0;
+        const invoiceCount = summaryData.invoiceCount ?? summaryData.count ?? 0;
 
-          setStats((s) => ({
-            ...s,
-            revenueToday: Number(revenueToday) || 0,
-            revenueTotal: Number(revenueTotal) || 0,
-            invoiceCount: Number(invoiceCount) || 0,
-          }));
-        }
+        setStats({
+          todayPrescriptions,
+          totalPrescriptions,
+          revenueToday: Number(revenueToday) || 0,
+          revenueTotal: Number(revenueTotal) || 0,
+          invoiceCount: Number(invoiceCount) || 0,
+        });
       } catch (err: any) {
         console.error("Error loading dashboard data:", err);
         setHealth("Backend not reachable");
@@ -190,7 +155,6 @@ export default function DashboardPage() {
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
-            {/* deterministic placeholder when dateInfo is null (SSR) */}
             {dateInfo ? (
               <>
                 <div>
@@ -265,7 +229,6 @@ export default function DashboardPage() {
 
         {/* Row 1 – OPD cards + Patient Flow */}
         <div style={{ display: "flex", gap: 16, marginBottom: 16 }}>
-          {/* OPD block */}
           <div
             style={{
               flex: 1,
@@ -290,7 +253,6 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Patient Flow */}
           <div
             style={{
               width: 360,
@@ -304,6 +266,7 @@ export default function DashboardPage() {
               style={{
                 display: "flex",
                 justifyContent: "space-between",
+                alignItems: "center",
                 marginBottom: 8,
               }}
             >
@@ -365,7 +328,6 @@ export default function DashboardPage() {
 
         {/* Row 2 – Revenue + Appointments */}
         <div style={{ display: "flex", gap: 16, marginBottom: 32 }}>
-          {/* Revenue */}
           <div
             style={{
               flex: 1.3,
@@ -450,7 +412,6 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Appointments */}
           <div
             style={{
               flex: 0.9,
