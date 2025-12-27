@@ -1,12 +1,14 @@
+// frontend/src/lib/apiBase.ts
+
+const baseUrl =
+  process.env.NEXT_PUBLIC_API_BASE ||
+  "http://145.223.23.176:5000";
+
 export async function apiClient<T = any>(
   path: string,
   init?: RequestInit
 ): Promise<T> {
-  // ✅ Use VPS backend (must exist at build time)
-  const baseUrl =
-    process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://145.223.23.176:5000";
-
-  // ✅ Read token only in browser
+  // Read token only in browser
   const token =
     typeof window !== "undefined"
       ? localStorage.getItem("token")
