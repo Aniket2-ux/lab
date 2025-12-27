@@ -1,6 +1,8 @@
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE ||
-  "http://145.223.23.176:5000"; // fallback for safety
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE;
+
+if (!API_BASE) {
+  throw new Error("NEXT_PUBLIC_API_BASE is not defined");
+}
 
 export async function apiClient<T>(
   path: string,
@@ -12,12 +14,10 @@ export async function apiClient<T>(
       "Content-Type": "application/json",
       ...(options.headers || {}),
     },
-    cache: "no-store",
   });
 
   if (!res.ok) {
-    const text = await res.text();
-    throw new Error(text || "API error");
+    throw new Error(await res.text());
   }
 
   return res.json();
