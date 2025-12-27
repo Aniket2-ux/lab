@@ -1,26 +1,20 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE!;
-
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_BASE || "http://145.223.23.176:5000";
 
 export async function apiFetch(
-  url: string,
-  options: RequestInit = {}
+  path: string,
+  options?: RequestInit
 ) {
-  const token =
-    typeof window !== "undefined"
-      ? localStorage.getItem("token")
-      : null;
-
-  const res = await fetch(`${API_BASE}${url}`, {
-    ...options,
+  const res = await fetch(`${API_BASE}${path}`, {
     headers: {
       "Content-Type": "application/json",
-      ...(token && { Authorization: `Bearer ${token}` }),
-      ...options.headers,
+      ...(options?.headers || {}),
     },
+    ...options,
   });
 
   if (!res.ok) {
-    throw new Error(await res.text());
+    throw new Error(`API error ${res.status}`);
   }
 
   return res.json();
