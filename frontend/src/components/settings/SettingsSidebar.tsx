@@ -14,11 +14,13 @@ export default function SettingsSidebar() {
   return (
     <aside className="settings-sidebar">
 
-      {/* COMPANY */}
+      {/* ================= COMPANY ================= */}
       <div className="sidebar-label">Company</div>
 
       <button
-        className={`sidebar-item ${isActive("/settings") ? "active" : ""}`}
+        className={`sidebar-item ${
+          pathname === "/settings" ? "active" : ""
+        }`}
         onClick={() => go("/settings")}
       >
         <div className="sidebar-title">Company Profile</div>
@@ -26,7 +28,9 @@ export default function SettingsSidebar() {
       </button>
 
       <button
-        className={`sidebar-item ${isActive("/settings/account") ? "active" : ""}`}
+        className={`sidebar-item ${
+          isActive("/settings/account") ? "active" : ""
+        }`}
         onClick={() => go("/settings/account")}
       >
         <div className="sidebar-title">Account</div>
@@ -36,7 +40,9 @@ export default function SettingsSidebar() {
       </button>
 
       <button
-        className={`sidebar-item ${isActive("/settings/users") ? "active" : ""}`}
+        className={`sidebar-item ${
+          isActive("/settings/users") ? "active" : ""
+        }`}
         onClick={() => go("/settings/users")}
       >
         <div className="sidebar-title">Users</div>
@@ -45,11 +51,16 @@ export default function SettingsSidebar() {
         </div>
       </button>
 
-      {/* MODULES */}
+      {/* ================= MODULES ================= */}
       <div className="sidebar-label">Modules</div>
 
       <button
-        className={`sidebar-item ${isActive("/settings/modules") ? "active" : ""}`}
+        className={`sidebar-item ${
+          isActive("/settings/modules") &&
+          !isActive("/settings/modules/calendar-client")
+            ? "active"
+            : ""
+        }`}
         onClick={() => go("/settings/modules")}
       >
         <div className="sidebar-title">Modules</div>
@@ -58,11 +69,26 @@ export default function SettingsSidebar() {
         </div>
       </button>
 
-      {/* OTHERS */}
+      {/* ✅ NEW: Calendar & Client */}
+      <button
+        className={`sidebar-item ${
+          isActive("/settings/modules/calendar-client") ? "active" : ""
+        }`}
+        onClick={() => go("/settings/modules/calendar-client")}
+      >
+        <div className="sidebar-title">Calendar & Client</div>
+        <div className="sidebar-desc">
+          Manage calendar and client settings.
+        </div>
+      </button>
+
+      {/* ================= OTHERS ================= */}
       <div className="sidebar-label">Others</div>
 
       <button
-        className={`sidebar-item ${isActive("/settings/others") ? "active" : ""}`}
+        className={`sidebar-item ${
+          isActive("/settings/others") ? "active" : ""
+        }`}
         onClick={() => go("/settings/others")}
       >
         <div className="sidebar-title">Others</div>
@@ -72,7 +98,9 @@ export default function SettingsSidebar() {
       </button>
 
       <button
-        className={`sidebar-item ${isActive("/settings/vendors") ? "active" : ""}`}
+        className={`sidebar-item ${
+          isActive("/settings/vendors") ? "active" : ""
+        }`}
         onClick={() => go("/settings/vendors")}
       >
         <div className="sidebar-title">Vendors</div>
@@ -80,7 +108,9 @@ export default function SettingsSidebar() {
       </button>
 
       <button
-        className={`sidebar-item ${isActive("/settings/payments") ? "active" : ""}`}
+        className={`sidebar-item ${
+          isActive("/settings/payments") ? "active" : ""
+        }`}
         onClick={() => go("/settings/payments")}
       >
         <div className="sidebar-title">Payments</div>
@@ -90,13 +120,13 @@ export default function SettingsSidebar() {
       </button>
 
       <button
-        className={`sidebar-item ${isActive("/settings/subscription") ? "active" : ""}`}
+        className={`sidebar-item ${
+          isActive("/settings/subscription") ? "active" : ""
+        }`}
         onClick={() => go("/settings/subscription")}
       >
         <div className="sidebar-title">Subscription Information</div>
-        <div className="sidebar-desc">
-          View your subscription.
-        </div>
+        <div className="sidebar-desc">View your subscription.</div>
       </button>
 
     </aside>

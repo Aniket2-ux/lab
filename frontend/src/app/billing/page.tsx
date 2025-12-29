@@ -6,6 +6,8 @@
   import HeaderBar from "../../components/HeaderBar";
   import CreateClientFromBilling from "./components/CreateClientFromBilling";
   import CreateReferrerModal from "./components/CreateReferrerModal";
+  import { API_BASE } from "@/lib/apiBase";
+
 
   
 
@@ -67,7 +69,7 @@
   };
 
   /* ------------ Config ------------ */
-  const API_BASE = process.env.NEXT_PUBLIC_API_BASE!;
+
 
   const LOCAL_STORAGE_KEY = "okhati_bills";
 
