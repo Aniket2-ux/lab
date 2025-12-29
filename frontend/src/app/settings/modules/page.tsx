@@ -1,58 +1,53 @@
 "use client";
 
-import { useState } from "react";
-import LabSettingsDrawer from "./LabSettingsDrawer";
+import { useRouter } from "next/navigation";
 
 export default function ModulesPage() {
-  const [openLab, setOpenLab] = useState(false);
+  const router = useRouter();
+
+  const go = (path: string) => {
+    router.push(path);
+  };
 
   return (
-    <div style={{ padding: 24, position: "relative" }}>
+    <div style={{ padding: 24 }}>
       <h2 style={{ marginBottom: 16 }}>Module Setting</h2>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(3, 1fr)",
-          gap: 16,
-        }}
-      >
-        <Card title="Calendar and Client" />
-        <Card title="OPD" />
-        <Card title="Lab" onClick={() => setOpenLab(true)} />
-        <Card title="Billing" />
-        <Card title="Stock" />
-        <Card title="IPD" />
-        <Card title="HMIS" />
-        <Card title="Medical" />
-      </div>
+      <div className="modules-grid">
+        <div className="module-card" onClick={() => go("/settings/modules/calendar-client")}>
+          <h3>Calendar and Client</h3>
+          <p>Manage Calendar and Client settings</p>
+        </div>
 
-      {openLab && <LabSettingsDrawer onClose={() => setOpenLab(false)} />}
-    </div>
-  );
-}
+        <div className="module-card">
+          <h3>OPD</h3>
+          <p>Manage OPD settings</p>
+        </div>
 
-function Card({
-  title,
-  onClick,
-}: {
-  title: string;
-  onClick?: () => void;
-}) {
-  return (
-    <div
-      onClick={onClick}
-      style={{
-        padding: 16,
-        background: "#fff",
-        border: "1px solid #e5e7eb",
-        borderRadius: 10,
-        cursor: onClick ? "pointer" : "default",
-      }}
-    >
-      <div style={{ fontWeight: 600 }}>{title}</div>
-      <div style={{ fontSize: 13, color: "#6b7280" }}>
-        Manage {title} settings
+        <div className="module-card">
+          <h3>Lab</h3>
+          <p>Manage Lab settings</p>
+        </div>
+
+        <div className="module-card">
+          <h3>Billing</h3>
+          <p>Manage Billing settings</p>
+        </div>
+
+        <div className="module-card">
+          <h3>Stock</h3>
+          <p>Manage Stock settings</p>
+        </div>
+
+        <div className="module-card">
+          <h3>IPD</h3>
+          <p>Manage IPD settings</p>
+        </div>
+
+        <div className="module-card">
+          <h3>HMIS</h3>
+          <p>Manage HMIS settings</p>
+        </div>
       </div>
     </div>
   );
