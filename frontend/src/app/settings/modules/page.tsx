@@ -2,52 +2,108 @@
 
 import { useRouter } from "next/navigation";
 
+type ModuleItem = {
+  title: string;
+  desc: string;
+  path?: string;
+};
+
 export default function ModulesPage() {
   const router = useRouter();
 
-  const go = (path: string) => {
-    router.push(path);
-  };
+  const modules: ModuleItem[] = [
+    {
+      title: "Calendar and Client",
+      desc: "Manage calendar and client settings",
+      path: "/settings/modules/calendar-client",
+    },
+    {
+      title: "OPD",
+      desc: "Manage OPD settings",
+      path: "/settings/modules/opd",
+    },
+    {
+      title: "Lab",
+      desc: "Manage lab settings",
+      path: "/settings/modules/lab",
+    },
+    {
+      title: "Billing",
+      desc: "Manage billing settings",
+      path: "/settings/modules/billing",
+    },
+    {
+      title: "Stock",
+      desc: "Manage stock settings",
+      path: "/settings/modules/stock",
+    },
+    {
+      title: "IPD",
+      desc: "Manage IPD settings",
+      path: "/settings/modules/ipd",
+    },
+    {
+      title: "HMIS",
+      desc: "Manage HMIS settings",
+      path: "/settings/modules/hmis",
+    },
+  ];
 
   return (
-    <div style={{ padding: 24 }}>
-      <h2 style={{ marginBottom: 16 }}>Module Setting</h2>
+    <div>
+      <h2 style={{ fontSize: 20, fontWeight: 600, marginBottom: 16 }}>
+        Module Settings
+      </h2>
 
-      <div className="modules-grid">
-        <div className="module-card" onClick={() => go("/settings/modules/calendar-client")}>
-          <h3>Calendar and Client</h3>
-          <p>Manage Calendar and Client settings</p>
-        </div>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
+          gap: 16,
+        }}
+      >
+        {modules.map((m) => (
+          <div
+            key={m.title}
+            onClick={() => m.path && router.push(m.path)}
+            style={{
+              background: "#fff",
+              borderRadius: 10,
+              padding: 16,
+              border: "1px solid #e5e7eb",
+              cursor: m.path ? "pointer" : "default",
+              transition: "all 0.2s ease",
+            }}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.boxShadow =
+                "0 8px 24px rgba(0,0,0,0.08)")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.boxShadow = "none")
+            }
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <h3 style={{ fontSize: 15, fontWeight: 600 }}>{m.title}</h3>
+              <span style={{ fontSize: 18 }}>›</span>
+            </div>
 
-        <div className="module-card">
-          <h3>OPD</h3>
-          <p>Manage OPD settings</p>
-        </div>
-
-        <div className="module-card">
-          <h3>Lab</h3>
-          <p>Manage Lab settings</p>
-        </div>
-
-        <div className="module-card">
-          <h3>Billing</h3>
-          <p>Manage Billing settings</p>
-        </div>
-
-        <div className="module-card">
-          <h3>Stock</h3>
-          <p>Manage Stock settings</p>
-        </div>
-
-        <div className="module-card">
-          <h3>IPD</h3>
-          <p>Manage IPD settings</p>
-        </div>
-
-        <div className="module-card">
-          <h3>HMIS</h3>
-          <p>Manage HMIS settings</p>
-        </div>
+            <p
+              style={{
+                fontSize: 13,
+                color: "#6b7280",
+                marginTop: 6,
+              }}
+            >
+              {m.desc}
+            </p>
+          </div>
+        ))}
       </div>
     </div>
   );
