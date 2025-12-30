@@ -1,45 +1,47 @@
 "use client";
 
+import SettingsSidebar from "@/components/settings/SettingsSidebar";
+
 export default function CalendarClientSettingsPage() {
   return (
-    <div style={{ padding: 24, maxWidth: 900 }}>
-      <h2>Calendar and Client Settings</h2>
+    <div style={{ display: "flex", height: "100vh" }}>
+      {/* LEFT SETTINGS SIDEBAR */}
+      <SettingsSidebar />
 
-      <section style={{ marginTop: 24 }}>
-        <h3>Calendar</h3>
+      {/* RIGHT CONTENT */}
+      <main style={{ flex: 1, padding: 24 }}>
+        <h2 style={{ fontSize: 18, fontWeight: 600 }}>
+          Calendar and Client Settings
+        </h2>
 
-        <label style={{ display: "block", marginTop: 12 }}>
-          <input type="radio" name="view" defaultChecked /> Monthly
-        </label>
+        <p style={{ marginTop: 8, color: "#666" }}>
+          Manage calendar and client configuration.
+        </p>
 
-        <label style={{ display: "block", marginTop: 8 }}>
-          <input type="radio" name="view" /> List
-        </label>
+        <div style={{ marginTop: 24 }}>
+          <label>
+            <input type="checkbox" /> Require Referrer
+          </label>
+        </div>
 
-        <label style={{ display: "block", marginTop: 12 }}>
-          <input type="checkbox" defaultChecked /> Require Referrer
-        </label>
-      </section>
+        <div style={{ marginTop: 12 }}>
+          <label>
+            <input type="checkbox" /> Allow Client Duplication
+          </label>
+        </div>
 
-      <section style={{ marginTop: 32 }}>
-        <h3>Client</h3>
+        <div style={{ marginTop: 12 }}>
+          <label>
+            <input type="checkbox" /> Require Email
+          </label>
+        </div>
 
-        <label style={{ display: "block", marginTop: 8 }}>
-          <input type="checkbox" defaultChecked /> Allow Client Duplication
-        </label>
-
-        <label style={{ display: "block", marginTop: 8 }}>
-          <input type="checkbox" /> Require Email
-        </label>
-
-        <label style={{ display: "block", marginTop: 8 }}>
-          <input type="checkbox" /> Require Date of Birth
-        </label>
-
-        <label style={{ display: "block", marginTop: 8 }}>
-          <input type="checkbox" /> Require Phone Number
-        </label>
-      </section>
+        <div style={{ marginTop: 12 }}>
+          <label>
+            <input type="checkbox" /> Require Phone Number
+          </label>
+        </div>
+      </main>
     </div>
   );
 }
