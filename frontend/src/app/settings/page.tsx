@@ -1,11 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-
 import { API_BASE } from "@/lib/apiBase";
-
-
 
 /* -------- Types -------- */
 type Profile = {
@@ -19,8 +15,6 @@ type Profile = {
 
 /* -------- Page -------- */
 export default function SettingsPage() {
-  const router = useRouter();
-
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [editOpen, setEditOpen] = useState(false);
@@ -53,64 +47,54 @@ export default function SettingsPage() {
   }
 
   return (
-    <div style={{ display: "flex", gap: 20 }}>
-      {/* LEFT MENU */}
-      <aside
+    <>
+      {/* CONTENT CARD */}
+      <div
         style={{
-          width: 260,
           background: "#fff",
           borderRadius: 10,
-          padding: 16,
+          padding: 24,
+          maxWidth: 900,
         }}
       >
-        <MenuItem label="Company Profile" active onClick={() => router.push("/settings")} />
-        <MenuItem label="Account" onClick={() => router.push("/settings/account")} />
-        <MenuItem label="Users" onClick={() => router.push("/settings/users")} />
-        <MenuItem label="Modules" onClick={() => router.push("/settings/modules")} />
-        <MenuItem label="Others" onClick={() => router.push("/settings/others")} />
-        <MenuItem label="Vendors" onClick={() => router.push("/settings/vendors")} />
-        <MenuItem label="Payments" onClick={() => router.push("/settings/payments")} />
-        <MenuItem
-          label="Subscription Information"
-          onClick={() => router.push("/settings/subscription")}
-        />
-      </aside>
-
-      {/* CONTENT */}
-      <section style={{ flex: 1 }}>
         <div
           style={{
-            background: "#fff",
-            borderRadius: 10,
-            padding: 20,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 20,
           }}
         >
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <h2>GM Diagnostic Lab</h2>
-            <button
-              onClick={() => {
-                setForm(profile || {});
-                setEditOpen(true);
-              }}
-            >
-              EDIT
-            </button>
-          </div>
-
-          {loading ? (
-            "Loading..."
-          ) : (
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr" }}>
-              <Field label="Short Name" value={profile?.shortName} />
-              <Field label="Company Name" value={profile?.name} />
-              <Field label="City" value={profile?.city} />
-              <Field label="Address" value={profile?.address} />
-              <Field label="Email" value={profile?.email} />
-              <Field label="Owner Email" value={profile?.ownerEmail} />
-            </div>
-          )}
+          <h2 style={{ margin: 0 }}>GM Diagnostic Lab</h2>
+          <button
+            onClick={() => {
+              setForm(profile || {});
+              setEditOpen(true);
+            }}
+          >
+            Edit
+          </button>
         </div>
-      </section>
+
+        {loading ? (
+          <div>Loading...</div>
+        ) : (
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: 16,
+            }}
+          >
+            <Field label="Short Name" value={profile?.shortName} />
+            <Field label="Company Name" value={profile?.name} />
+            <Field label="City" value={profile?.city} />
+            <Field label="Address" value={profile?.address} />
+            <Field label="Email" value={profile?.email} />
+            <Field label="Owner Email" value={profile?.ownerEmail} />
+          </div>
+        )}
+      </div>
 
       {/* EDIT DRAWER */}
       {editOpen && (
@@ -122,84 +106,74 @@ export default function SettingsPage() {
             bottom: 0,
             width: 420,
             background: "#fff",
-            padding: 20,
+            padding: 24,
             boxShadow: "-10px 0 30px rgba(0,0,0,0.15)",
+            zIndex: 50,
           }}
         >
           <h3>Edit Company Profile</h3>
 
-          <input
-            placeholder="Short Name"
-            value={form.shortName || ""}
-            onChange={(e) =>
-              setForm({ ...form, shortName: e.target.value })
-            }
+          <Input
+            label="Short Name"
+            value={form.shortName}
+            onChange={(v) => setForm({ ...form, shortName: v })}
           />
-          <input
-            placeholder="Company Name"
-            value={form.name || ""}
-            onChange={(e) =>
-              setForm({ ...form, name: e.target.value })
-            }
+          <Input
+            label="Company Name"
+            value={form.name}
+            onChange={(v) => setForm({ ...form, name: v })}
           />
-          <input
-            placeholder="City"
-            value={form.city || ""}
-            onChange={(e) =>
-              setForm({ ...form, city: e.target.value })
-            }
+          <Input
+            label="City"
+            value={form.city}
+            onChange={(v) => setForm({ ...form, city: v })}
           />
-          <input
-            placeholder="Email"
-            value={form.email || ""}
-            onChange={(e) =>
-              setForm({ ...form, email: e.target.value })
-            }
+          <Input
+            label="Email"
+            value={form.email}
+            onChange={(v) => setForm({ ...form, email: v })}
           />
 
-          <div style={{ marginTop: 12 }}>
+          <div style={{ marginTop: 20 }}>
             <button onClick={saveProfile}>Save</button>
-            <button onClick={() => setEditOpen(false)}>Cancel</button>
+            <button onClick={() => setEditOpen(false)} style={{ marginLeft: 10 }}>
+              Cancel
+            </button>
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
 
 /* -------- Helpers -------- */
 
-function MenuItem({
-  label,
-  active,
-  onClick,
-}: {
-  label: string;
-  active?: boolean;
-  onClick: () => void;
-}) {
+function Field({ label, value }: { label: string; value?: string }) {
   return (
-    <div
-      onClick={onClick}
-      style={{
-        padding: 8,
-        marginTop: 6,
-        borderRadius: 6,
-        background: active ? "#e6f4ef" : "transparent",
-        cursor: "pointer",
-        fontWeight: active ? 600 : 400,
-      }}
-    >
-      {label}
+    <div>
+      <div style={{ fontSize: 12, color: "#666" }}>{label}</div>
+      <div style={{ fontWeight: 500 }}>{value || "-"}</div>
     </div>
   );
 }
 
-function Field({ label, value }: any) {
+function Input({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value?: string;
+  onChange: (v: string) => void;
+}) {
   return (
-    <div style={{ marginBottom: 12 }}>
-      <div style={{ fontSize: 12, color: "#666" }}>{label}</div>
-      <div>{value || "-"}</div>
+    <div style={{ marginTop: 12 }}>
+      <div style={{ fontSize: 12, marginBottom: 4 }}>{label}</div>
+      <input
+        value={value || ""}
+        onChange={(e) => onChange(e.target.value)}
+        style={{ width: "100%", padding: 8 }}
+      />
     </div>
   );
 }
