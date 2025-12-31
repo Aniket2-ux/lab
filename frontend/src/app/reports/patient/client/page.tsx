@@ -1,144 +1,85 @@
 "use client";
 
-import { useState } from "react";
-
-/* ================= TYPES ================= */
+import { useEffect, useState } from "react";
+import { API_BASE } from "@/lib/apiBase";
 
 type Report = {
   id: number;
-  clientId: string;
+  reportCode: string;
   clientName: string;
   testName: string;
-  password: string;
   createdAt: string;
 };
 
-/* ================= PAGE ================= */
-
 export default function ClientReportPage() {
   const [reports, setReports] = useState<Report[]>([]);
-  const [clientId, setClientId] = useState("");
   const [clientName, setClientName] = useState("");
   const [testName, setTestName] = useState("");
   const [password, setPassword] = useState("");
 
-  function createReport() {
-    if (!clientId || !clientName || !testName || !password) {
-      alert("Please fill all fields");
-      return;
-    }
+  async function loadReports() {
+    const res = await fetch(`${API_BASE}/api/client-reports`);
+    const data = await res.json();
+    setReports(data);
+  }
 
-    const newReport: Report = {
-      id: Date.now(),
-      clientId,
-      clientName,
-      testName,
-      password,
-      createdAt: new Date().toLocaleString(),
-    };
+  async function createReport() {
+    await fetch(`${API_BASE}/api/client-reports`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        clientId: Date.now(),
+        clientName,
+        testName,
+        password,
+      }),
+    });
 
-    setReports([newReport, ...reports]);
-
-    setClientId("");
     setClientName("");
     setTestName("");
     setPassword("");
+    loadReports();
   }
+
+  useEffect(() => {
+    loadReports();
+  }, []);
 
   return (
     <div style={{ maxWidth: 900 }}>
-      {/* ================= HEADER ================= */}
       <h2>Client Report</h2>
-      <p style={{ color: "#666", marginBottom: 20 }}>
-        Create client reports and protect them with a password
-      </p>
 
-      {/* ================= CREATE REPORT ================= */}
-      <div
-        style={{
-          background: "#fff",
-          padding: 20,
-          borderRadius: 10,
-          marginBottom: 30,
-          boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-        }}
-      >
-        <h3 style={{ marginBottom: 12 }}>Create Report</h3>
+      <div style={box}>
+        <h3>Create Report</h3>
 
-        <div style={grid}>
-          <input
-            placeholder="Client ID"
-            value={clientId}
-            onChange={(e) => setClientId(e.target.value)}
-            style={input}
-          />
-          <input
-            placeholder="Client Name"
-            value={clientName}
-            onChange={(e) => setClientName(e.target.value)}
-            style={input}
-          />
-          <input
-            placeholder="Test Name"
-            value={testName}
-            onChange={(e) => setTestName(e.target.value)}
-            style={input}
-          />
-          <input
-            placeholder="Report Password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            style={input}
-          />
-        </div>
+        <input placeholder="Client Name" value={clientName} onChange={e => setClientName(e.target.value)} />
+        <input placeholder="Test Name" value={testName} onChange={e => setTestName(e.target.value)} />
+        <input placeholder="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} />
 
-        <button onClick={createReport} style={button}>
-          Create Report
-        </button>
+        <button onClick={createReport}>Create</button>
       </div>
 
-      {/* ================= RECENT REPORTS ================= */}
-      <div
-        style={{
-          background: "#fff",
-          borderRadius: 10,
-          boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-        }}
-      >
-        <div style={{ padding: 16, borderBottom: "1px solid #eee" }}>
-          <strong>Recently Created Reports</strong>
-        </div>
+      <div style={box}>
+        <h3>Recently Created</h3>
 
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <table width="100%">
           <thead>
-            <tr style={{ background: "#f6f7f9", textAlign: "left" }}>
-              <th style={th}>Client ID</th>
-              <th style={th}>Client Name</th>
-              <th style={th}>Test</th>
-              <th style={th}>Created</th>
-              <th style={th}>Password</th>
+            <tr>
+              <th>Code</th>
+              <th>Client</th>
+              <th>Test</th>
+              <th>Date</th>
             </tr>
           </thead>
-
           <tbody>
-            {reports.length === 0 ? (
-              <tr>
-                <td colSpan={5} style={td}>
-                  No reports created yet
-                </td>
+            {reports.map(r => (
+              <tr key={r.id}>
+                <td>{r.reportCode}</td>
+                <td>{r.clientName}</td>
+                <td>{r.testName}</td>
+                <td>{new Date(r.createdAt).toLocaleString()}</td>
               </tr>
-            ) : (
-              reports.map((r) => (
-                <tr key={r.id}>
-                  <td style={td}>{r.clientId}</td>
-                  <td style={td}>{r.clientName}</td>
-                  <td style={td}>{r.testName}</td>
-                  <td style={td}>{r.createdAt}</td>
-                  <td style={td}>{r.password}</td>
-                </tr>
-              ))
-            )}
+            ))}
           </tbody>
         </table>
       </div>
@@ -146,38 +87,9 @@ export default function ClientReportPage() {
   );
 }
 
-/* ================= STYLES ================= */
-
-const grid: React.CSSProperties = {
-  display: "grid",
-  gridTemplateColumns: "1fr 1fr",
-  gap: 12,
-  marginBottom: 16,
-};
-
-const input: React.CSSProperties = {
-  padding: 10,
-  borderRadius: 6,
-  border: "1px solid #ccc",
-};
-
-const button: React.CSSProperties = {
-  background: "#009150",
-  color: "#fff",
-  padding: "10px 18px",
-  border: "none",
-  borderRadius: 6,
-  cursor: "pointer",
-};
-
-const th: React.CSSProperties = {
-  padding: 10,
-  fontSize: 13,
-  color: "#666",
-};
-
-const td: React.CSSProperties = {
-  padding: 10,
-  borderTop: "1px solid #eee",
-  fontSize: 14,
+const box: React.CSSProperties = {
+  background: "#fff",
+  padding: 16,
+  borderRadius: 8,
+  marginBottom: 20,
 };
