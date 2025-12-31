@@ -20,7 +20,10 @@ const MAIN_ITEMS: NavItem[] = [
 
 const BOTTOM_ITEMS: NavItem[] = [
   { href: "/messaging", label: "Messaging", icon: "💬" },
-  { href: "/daybook", label: "Daybook", icon: "📓" },
+
+  // ✅ REPLACED DAYBOOK → CLIENT REPORTS
+  { href: "/client-reports", label: "Client Reports", icon: "📄" },
+
   { href: "/reports", label: "Reports", icon: "📊" },
   { href: "/settings", label: "Settings", icon: "⚙️" },
 ];
@@ -30,6 +33,7 @@ export default function Sidebar() {
 
   const renderItem = (item: NavItem) => {
     const active = pathname.startsWith(item.href);
+
     return (
       <Link
         key={item.href}
@@ -63,14 +67,12 @@ export default function Sidebar() {
         color: "#fff",
         display: "flex",
         flexDirection: "column",
-        alignItems: "stretch",
-        // 👇 this makes the sidebar itself scrollable
         height: "100vh",
         overflowY: "auto",
         overflowX: "hidden",
       }}
     >
-      {/* Top logo / clinic circle */}
+      {/* Logo */}
       <div
         style={{
           height: 80,
@@ -98,11 +100,10 @@ export default function Sidebar() {
         </div>
       </div>
 
-      {/* Main navigation */}
+      {/* Navigation */}
       <nav style={{ display: "flex", flexDirection: "column", flexGrow: 1 }}>
         {MAIN_ITEMS.map(renderItem)}
 
-        {/* Push next block to bottom */}
         <div style={{ marginTop: "auto" }}>
           {BOTTOM_ITEMS.map(renderItem)}
         </div>
