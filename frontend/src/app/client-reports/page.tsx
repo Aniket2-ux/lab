@@ -1,52 +1,64 @@
 "use client";
+import { useState } from "react";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
+export default function ClientAccess() {
+  const [code, setCode] = useState("");
+  const [pass, setPass] = useState("");
+  const [report, setReport] = useState<any>(null);
 
-export default function ClientReportsPage() {
-  const [reports, setReports] = useState<any[]>([]);
-
-  useEffect(() => {
-    const data = JSON.parse(
-      localStorage.getItem("clientReports") || "[]"
+  const load = async () => {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_BASE}/api/client-reports/access`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reportCode: code, password: pass }),
+      }
     );
-    setReports(data);
-  }, []);
+    const json = await res.json();
+    setReport(json);
+  };
+
+  if (!report)
+    return (
+      <div style={{ padding: 40 }}>
+        <h2>Lab Report Access</h2>
+        <input placeholder="Report Code" onChange={e=>setCode(e.target.value)}/>
+        <input placeholder="Password" type="password" onChange={e=>setPass(e.target.value)}/>
+        <button onClick={load}>View Report</button>
+      </div>
+    );
 
   return (
-    <div style={{ maxWidth: 900, margin: "0 auto", padding: 24 }}>
-      <h2>Lab Report Access</h2>
+    <div style={{ padding: 40 }}>
+      <h2>{report.patientName}</h2>
+      <p>Doctor: {report.doctorName}</p>
 
-      <table width="100%" style={{ marginTop: 16 }}>
-        <thead>
-          <tr>
-            <th>Client ID</th>
-            <th>Patient</th>
-            <th>Doctor</th>
-            <th>Date</th>
-            <th>View</th>
-          </tr>
-        </thead>
-        <tbody>
-          {reports.length === 0 && (
-            <tr>
-              <td colSpan={5}>No reports available</td>
-            </tr>
-          )}
-
-          {reports.map((r) => (
-            <tr key={r.id}>
-              <td>{r.clientId}</td>
-              <td>{r.patientName}</td>
-              <td>{r.doctor}</td>
-              <td>{r.createdAt}</td>
-              <td>
-                <Link href={`/client-reports/${r.id}`}>View</Link>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      {report.tests.map((t:any,i:number)=>(
+        <div key={i}>
+          <h3>{t.name}</h3>
+          <table border={1}>
+            <thead>
+              <tr>
+                <th>Parameter</th>
+                <th>Result</th>
+                <th>Unit</th>
+                <th>Normal</th>
+              </tr>
+            </thead>
+            <tbody>
+              {t.parameters.map((p:any,j:number)=>(
+                <tr key={j}>
+                  <td>{p.name}</td>
+                  <td>{p.value}</td>
+                  <td>{p.unit}</td>
+                  <td>{p.range}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ))}
     </div>
   );
 }

@@ -8,8 +8,9 @@ const ClientReport = sequelize.define("ClientReport", {
     primaryKey: true,
   },
 
-  clientId: {
+  reportCode: {
     type: DataTypes.STRING,
+    unique: true,
     allowNull: false,
   },
 
@@ -19,22 +20,22 @@ const ClientReport = sequelize.define("ClientReport", {
   },
 
   age: {
-    type: DataTypes.INTEGER,
-    allowNull: true,
+    type: DataTypes.STRING, // ✅ STRING (VERY IMPORTANT)
+    allowNull: false,
   },
 
   gender: {
     type: DataTypes.STRING,
-    allowNull: true,
+    allowNull: false,
   },
 
   doctorName: {
     type: DataTypes.STRING,
-    allowNull: true,
+    allowNull: false,
   },
 
-  testData: {
-    type: DataTypes.JSONB, // CBC / LFT / any test structure
+  tests: {
+    type: DataTypes.JSONB, // ✅ stores full report structure
     allowNull: false,
   },
 
