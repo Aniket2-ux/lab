@@ -1,145 +1,111 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { API_BASE } from "@/lib/apiBase";
+import { useState } from "react";
 
-type ClientReport = {
+/* ================= TYPES ================= */
+
+type Report = {
   id: number;
-  reportCode: string;
+  clientId: string;
   clientName: string;
   testName: string;
+  password: string;
   createdAt: string;
 };
 
+/* ================= PAGE ================= */
+
 export default function ClientReportPage() {
-  const [reports, setReports] = useState<ClientReport[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const [reportCode, setReportCode] = useState("");
+  const [reports, setReports] = useState<Report[]>([]);
+  const [clientId, setClientId] = useState("");
+  const [clientName, setClientName] = useState("");
+  const [testName, setTestName] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [verifiedReport, setVerifiedReport] = useState<any>(null);
 
-  /* ================= LOAD RECENT REPORTS ================= */
-  useEffect(() => {
-    loadReports();
-  }, []);
-
-  async function loadReports() {
-    try {
-      const res = await fetch(`${API_BASE}/api/client-reports`);
-      const data = await res.json();
-      setReports(data || []);
-    } catch {
-      setReports([]);
-    } finally {
-      setLoading(false);
+  function createReport() {
+    if (!clientId || !clientName || !testName || !password) {
+      alert("Please fill all fields");
+      return;
     }
-  }
 
-  /* ================= VERIFY REPORT ================= */
-  async function verifyReport() {
-    setError("");
-    setVerifiedReport(null);
+    const newReport: Report = {
+      id: Date.now(),
+      clientId,
+      clientName,
+      testName,
+      password,
+      createdAt: new Date().toLocaleString(),
+    };
 
-    try {
-      const res = await fetch(`${API_BASE}/api/client-reports/verify`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ reportCode, password }),
-      });
+    setReports([newReport, ...reports]);
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.error || "Invalid credentials");
-        return;
-      }
-
-      setVerifiedReport(data.report);
-    } catch {
-      setError("Server error");
-    }
+    setClientId("");
+    setClientName("");
+    setTestName("");
+    setPassword("");
   }
 
   return (
-    <div>
+    <div style={{ maxWidth: 900 }}>
       {/* ================= HEADER ================= */}
-      <h2 style={{ marginBottom: 6 }}>Client Report</h2>
+      <h2>Client Report</h2>
       <p style={{ color: "#666", marginBottom: 20 }}>
-        View patient reports using Report ID and Password
+        Create client reports and protect them with a password
       </p>
 
-      {/* ================= ACCESS PANEL ================= */}
+      {/* ================= CREATE REPORT ================= */}
       <div
         style={{
           background: "#fff",
-          padding: 16,
-          borderRadius: 8,
-          marginBottom: 24,
-          maxWidth: 520,
+          padding: 20,
+          borderRadius: 10,
+          marginBottom: 30,
+          boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
         }}
       >
-        <h4>Access Report</h4>
+        <h3 style={{ marginBottom: 12 }}>Create Report</h3>
 
-        <input
-          placeholder="Report ID"
-          value={reportCode}
-          onChange={(e) => setReportCode(e.target.value)}
-          style={{ width: "100%", marginBottom: 10, padding: 10 }}
-        />
+        <div style={grid}>
+          <input
+            placeholder="Client ID"
+            value={clientId}
+            onChange={(e) => setClientId(e.target.value)}
+            style={input}
+          />
+          <input
+            placeholder="Client Name"
+            value={clientName}
+            onChange={(e) => setClientName(e.target.value)}
+            style={input}
+          />
+          <input
+            placeholder="Test Name"
+            value={testName}
+            onChange={(e) => setTestName(e.target.value)}
+            style={input}
+          />
+          <input
+            placeholder="Report Password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            style={input}
+          />
+        </div>
 
-        <input
-          placeholder="Password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          style={{ width: "100%", marginBottom: 10, padding: 10 }}
-        />
-
-        <button
-          onClick={verifyReport}
-          style={{
-            background: "#009150",
-            color: "#fff",
-            padding: "8px 16px",
-            border: "none",
-            cursor: "pointer",
-          }}
-        >
-          View Report
+        <button onClick={createReport} style={button}>
+          Create Report
         </button>
-
-        {error && <p style={{ color: "red", marginTop: 8 }}>{error}</p>}
       </div>
 
-      {/* ================= VERIFIED RESULT ================= */}
-      {verifiedReport && (
-        <div
-          style={{
-            background: "#f8fffb",
-            border: "1px solid #cceede",
-            padding: 16,
-            borderRadius: 8,
-            marginBottom: 30,
-          }}
-        >
-          <strong>{verifiedReport.clientName}</strong>
-          <div>{verifiedReport.testName}</div>
-
-          <a
-            href={`${API_BASE}/${verifiedReport.pdfPath}`}
-            target="_blank"
-            rel="noreferrer"
-            style={{ color: "#009150", fontWeight: 600 }}
-          >
-            Open PDF Report
-          </a>
-        </div>
-      )}
-
-      {/* ================= RECENT REPORTS TABLE ================= */}
-      <div style={{ background: "#fff", borderRadius: 8 }}>
+      {/* ================= RECENT REPORTS ================= */}
+      <div
+        style={{
+          background: "#fff",
+          borderRadius: 10,
+          boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+        }}
+      >
         <div style={{ padding: 16, borderBottom: "1px solid #eee" }}>
           <strong>Recently Created Reports</strong>
         </div>
@@ -147,35 +113,29 @@ export default function ClientReportPage() {
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
             <tr style={{ background: "#f6f7f9", textAlign: "left" }}>
-              <th style={th}>Report ID</th>
+              <th style={th}>Client ID</th>
               <th style={th}>Client Name</th>
               <th style={th}>Test</th>
               <th style={th}>Created</th>
+              <th style={th}>Password</th>
             </tr>
           </thead>
 
           <tbody>
-            {loading ? (
+            {reports.length === 0 ? (
               <tr>
-                <td colSpan={4} style={td}>
-                  Loading...
-                </td>
-              </tr>
-            ) : reports.length === 0 ? (
-              <tr>
-                <td colSpan={4} style={td}>
-                  No reports found
+                <td colSpan={5} style={td}>
+                  No reports created yet
                 </td>
               </tr>
             ) : (
               reports.map((r) => (
                 <tr key={r.id}>
-                  <td style={td}>{r.reportCode}</td>
+                  <td style={td}>{r.clientId}</td>
                   <td style={td}>{r.clientName}</td>
                   <td style={td}>{r.testName}</td>
-                  <td style={td}>
-                    {new Date(r.createdAt).toLocaleDateString()}
-                  </td>
+                  <td style={td}>{r.createdAt}</td>
+                  <td style={td}>{r.password}</td>
                 </tr>
               ))
             )}
@@ -187,6 +147,28 @@ export default function ClientReportPage() {
 }
 
 /* ================= STYLES ================= */
+
+const grid: React.CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "1fr 1fr",
+  gap: 12,
+  marginBottom: 16,
+};
+
+const input: React.CSSProperties = {
+  padding: 10,
+  borderRadius: 6,
+  border: "1px solid #ccc",
+};
+
+const button: React.CSSProperties = {
+  background: "#009150",
+  color: "#fff",
+  padding: "10px 18px",
+  border: "none",
+  borderRadius: 6,
+  cursor: "pointer",
+};
 
 const th: React.CSSProperties = {
   padding: 10,
