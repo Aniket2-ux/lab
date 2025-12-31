@@ -78,6 +78,10 @@ app.use("/api/settings", settingsProfileRouter);
 app.use("/api/billing", billingRoutes);
 app.use("/api/lab", labRecordsRoutes);
 app.use("/api/lab-tests", labTestsRoutes);
+app.use("/api/client-reports", require("./routes/clientReports"));
+app.use("/uploads", express.static("uploads"));
+
+
 
 /* =========================
    HEALTH CHECK
