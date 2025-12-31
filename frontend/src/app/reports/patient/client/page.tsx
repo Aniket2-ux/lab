@@ -1,95 +1,80 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { API_BASE } from "@/lib/apiBase";
+import { useState } from "react";
 
-type Report = {
-  id: number;
-  reportCode: string;
-  clientName: string;
-  testName: string;
-  createdAt: string;
-};
+const CBC_TEMPLATE = [
+  { parameter: "Hemoglobin", unit: "g/dL", normalRange: "13–17" },
+  { parameter: "WBC", unit: "/µL", normalRange: "4000–11000" },
+  { parameter: "Platelets", unit: "/µL", normalRange: "150000–450000" },
+];
 
 export default function ClientReportPage() {
-  const [reports, setReports] = useState<Report[]>([]);
   const [clientName, setClientName] = useState("");
-  const [testName, setTestName] = useState("");
   const [password, setPassword] = useState("");
-
-  async function loadReports() {
-    const res = await fetch(`${API_BASE}/api/client-reports`);
-    const data = await res.json();
-    setReports(data);
-  }
+  const [rows, setRows] = useState(
+    CBC_TEMPLATE.map((p) => ({ ...p, value: "" }))
+  );
+  const [code, setCode] = useState("");
 
   async function createReport() {
-    await fetch(`${API_BASE}/api/client-reports`, {
+    const res = await fetch("/api/client-reports", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        clientId: Date.now(),
         clientName,
-        testName,
+        testName: "CBC",
         password,
+        parameters: rows.map((r) => ({
+          ...r,
+          flag: "Normal",
+        })),
       }),
     });
 
-    setClientName("");
-    setTestName("");
-    setPassword("");
-    loadReports();
+    const json = await res.json();
+    setCode(json.reportCode);
   }
 
-  useEffect(() => {
-    loadReports();
-  }, []);
-
   return (
-    <div style={{ maxWidth: 900 }}>
-      <h2>Client Report</h2>
+    <div style={{ maxWidth: 900, margin: "auto" }}>
+      <h2>Client Report (CBC)</h2>
 
-      <div style={box}>
-        <h3>Create Report</h3>
+      <input placeholder="Client Name" onChange={(e) => setClientName(e.target.value)} />
+      <input placeholder="Report Password" onChange={(e) => setPassword(e.target.value)} />
 
-        <input placeholder="Client Name" value={clientName} onChange={e => setClientName(e.target.value)} />
-        <input placeholder="Test Name" value={testName} onChange={e => setTestName(e.target.value)} />
-        <input placeholder="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} />
-
-        <button onClick={createReport}>Create</button>
-      </div>
-
-      <div style={box}>
-        <h3>Recently Created</h3>
-
-        <table width="100%">
-          <thead>
-            <tr>
-              <th>Code</th>
-              <th>Client</th>
-              <th>Test</th>
-              <th>Date</th>
+      <table>
+        <thead>
+          <tr>
+            <th>Parameter</th>
+            <th>Value</th>
+            <th>Unit</th>
+            <th>Normal Range</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r, i) => (
+            <tr key={i}>
+              <td>{r.parameter}</td>
+              <td>
+                <input
+                  value={r.value}
+                  onChange={(e) => {
+                    const copy = [...rows];
+                    copy[i].value = e.target.value;
+                    setRows(copy);
+                  }}
+                />
+              </td>
+              <td>{r.unit}</td>
+              <td>{r.normalRange}</td>
             </tr>
-          </thead>
-          <tbody>
-            {reports.map(r => (
-              <tr key={r.id}>
-                <td>{r.reportCode}</td>
-                <td>{r.clientName}</td>
-                <td>{r.testName}</td>
-                <td>{new Date(r.createdAt).toLocaleString()}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+          ))}
+        </tbody>
+      </table>
+
+      <button onClick={createReport}>Create Report</button>
+
+      {code && <p><b>Report Code:</b> {code}</p>}
     </div>
   );
 }
-
-const box: React.CSSProperties = {
-  background: "#fff",
-  padding: 16,
-  borderRadius: 8,
-  marginBottom: 20,
-};

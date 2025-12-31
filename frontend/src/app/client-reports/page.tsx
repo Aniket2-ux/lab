@@ -2,68 +2,51 @@
 
 import { useState } from "react";
 
-const API = process.env.NEXT_PUBLIC_API_BASE;
-
-export default function ClientReportsPage() {
-  const [reportCode, setReportCode] = useState("");
+export default function ClientReportAccess() {
+  const [code, setCode] = useState("");
   const [password, setPassword] = useState("");
-  const [data, setData] = useState<any>(null);
-  const [error, setError] = useState("");
+  const [report, setReport] = useState<any>(null);
 
-  async function viewReport() {
-    setError("");
-
-    const res = await fetch(`${API}/api/client-reports/access`, {
+  async function fetchReport() {
+    const res = await fetch("/api/client-reports/view", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ reportCode, password }),
+      body: JSON.stringify({ reportCode: code, password }),
     });
-
-    const json = await res.json();
-
-    if (!res.ok) {
-      setError(json.error);
-      return;
-    }
-
-    setData(json);
+    setReport(await res.json());
   }
 
   return (
-    <div style={{ maxWidth: 480, margin: "80px auto" }}>
-      <h2>Client Report Access</h2>
+    <div style={{ maxWidth: 900, margin: "auto" }}>
+      <h2>Access Your Lab Report</h2>
 
-      {!data ? (
+      <input placeholder="Report Code" onChange={(e) => setCode(e.target.value)} />
+      <input placeholder="Password" type="password" onChange={(e) => setPassword(e.target.value)} />
+      <button onClick={fetchReport}>View</button>
+
+      {report && (
         <>
-          <input
-            placeholder="Report Code"
-            value={reportCode}
-            onChange={(e) => setReportCode(e.target.value)}
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-
-          {error && <p style={{ color: "red" }}>{error}</p>}
-
-          <button onClick={viewReport}>View Report</button>
-        </>
-      ) : (
-        <>
-          <h3>{data.clientName}</h3>
-          <p>{data.testName}</p>
-
-          <iframe
-            src={`${API}${data.pdfUrl}`}
-            style={{ width: "100%", height: 500 }}
-          />
-
-          <a href={`${API}${data.pdfUrl}`} download>
-            Download PDF
-          </a>
+          <h3>{report.clientName} – {report.testName}</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Parameter</th>
+                <th>Result</th>
+                <th>Unit</th>
+                <th>Normal Range</th>
+              </tr>
+            </thead>
+            <tbody>
+              {report.ReportParameters.map((r:any) => (
+                <tr key={r.id}>
+                  <td>{r.parameter}</td>
+                  <td>{r.value}</td>
+                  <td>{r.unit}</td>
+                  <td>{r.normalRange}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </>
       )}
     </div>
