@@ -4,65 +4,58 @@ const ClientReport = require("../models/ClientReport");
 
 const router = express.Router();
 
-/**
- * ADMIN: Create client report
- */
+/* ===============================
+   ADMIN: CREATE REPORT
+================================ */
 router.post("/", async (req, res) => {
   try {
-    const { clientId, clientName, testName, pdfPath, password } = req.body;
+    const { reportCode, clientName, testName, pdfPath, password } = req.body;
 
-    if (!clientId || !clientName || !testName || !pdfPath || !password) {
-      return res.status(400).json({ error: "All fields required" });
+    if (!reportCode || !clientName || !testName || !pdfPath || !password) {
+      return res.status(400).json({ error: "Missing fields" });
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
 
     const report = await ClientReport.create({
-      clientId,
+      reportCode,
       clientName,
       testName,
       pdfPath,
-      reportCode: `REP-${Date.now()}`,
       passwordHash,
     });
 
     res.json({ success: true, report });
   } catch (err) {
-    console.error(err);
+    console.error("Create report error:", err);
     res.status(500).json({ error: "Failed to create report" });
   }
 });
 
-/**
- * CLIENT: Verify password and get report
- */
+/* ===============================
+   CLIENT: VERIFY & VIEW REPORT
+================================ */
 router.post("/verify", async (req, res) => {
   try {
     const { reportCode, password } = req.body;
 
     const report = await ClientReport.findOne({ where: { reportCode } });
-
     if (!report) {
       return res.status(404).json({ error: "Report not found" });
     }
 
-    const match = await bcrypt.compare(password, report.passwordHash);
-
-    if (!match) {
+    const ok = await bcrypt.compare(password, report.passwordHash);
+    if (!ok) {
       return res.status(401).json({ error: "Invalid password" });
     }
 
     res.json({
-      success: true,
-      report: {
-        clientName: report.clientName,
-        testName: report.testName,
-        pdfPath: report.pdfPath,
-        createdAt: report.createdAt,
-      },
+      clientName: report.clientName,
+      testName: report.testName,
+      pdfPath: report.pdfPath,
     });
   } catch (err) {
-    console.error(err);
+    console.error("Verify report error:", err);
     res.status(500).json({ error: "Verification failed" });
   }
 });

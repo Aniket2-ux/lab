@@ -10,16 +10,10 @@ const ClientReport = sequelize.define(
       primaryKey: true,
     },
 
-    /* Link report to client */
-    clientId: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
-
     reportCode: {
       type: DataTypes.STRING,
-      allowNull: false,
       unique: true,
+      allowNull: false,
     },
 
     clientName: {
@@ -37,7 +31,6 @@ const ClientReport = sequelize.define(
       allowNull: false,
     },
 
-    /* bcrypt hash of password */
     passwordHash: {
       type: DataTypes.STRING,
       allowNull: false,

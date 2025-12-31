@@ -33,6 +33,7 @@ app.use(express.json());
   "BillItem",
   "CreditNote",
   "LabRecord",
+  "ClientReport",
 ].forEach((model) => {
   try {
     require(`./models/${model}`);
