@@ -1,56 +1,52 @@
 "use client";
-import { useState } from "react";
 
-export default function ClientView() {
-  const [code,setCode]=useState("");
-  const [password,setPassword]=useState("");
-  const [r,setR]=useState<any>(null);
+import { useEffect, useState } from "react";
+import Link from "next/link";
 
-  async function open() {
-    const res=await fetch("/api/client-reports/view",{
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body:JSON.stringify({reportCode:code,password})
-    });
-    setR(await res.json());
-  }
+export default function ClientReportsPage() {
+  const [reports, setReports] = useState<any[]>([]);
+
+  useEffect(() => {
+    const data = JSON.parse(
+      localStorage.getItem("clientReports") || "[]"
+    );
+    setReports(data);
+  }, []);
 
   return (
-    <div className="report">
+    <div style={{ maxWidth: 900, margin: "0 auto", padding: 24 }}>
       <h2>Lab Report Access</h2>
 
-      <input placeholder="Report Code" onChange={e=>setCode(e.target.value)}/>
-      <input placeholder="Password" type="password" onChange={e=>setPassword(e.target.value)}/>
-      <button onClick={open}>View</button>
+      <table width="100%" style={{ marginTop: 16 }}>
+        <thead>
+          <tr>
+            <th>Client ID</th>
+            <th>Patient</th>
+            <th>Doctor</th>
+            <th>Date</th>
+            <th>View</th>
+          </tr>
+        </thead>
+        <tbody>
+          {reports.length === 0 && (
+            <tr>
+              <td colSpan={5}>No reports available</td>
+            </tr>
+          )}
 
-      {r && (
-        <>
-          <h3>{r.testName}</h3>
-          <p><b>Patient:</b> {r.patientName} | {r.age} | {r.gender}</p>
-          <p><b>Doctor:</b> {r.doctorName}</p>
-
-          <table>
-            <thead>
-              <tr>
-                <th>Parameter</th>
-                <th>Result</th>
-                <th>Unit</th>
-                <th>Normal Range</th>
-              </tr>
-            </thead>
-            <tbody>
-              {r.ReportItems.map((i:any)=>(
-                <tr key={i.id}>
-                  <td>{i.parameter}</td>
-                  <td>{i.result}</td>
-                  <td>{i.unit}</td>
-                  <td>{i.normalRange}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </>
-      )}
+          {reports.map((r) => (
+            <tr key={r.id}>
+              <td>{r.clientId}</td>
+              <td>{r.patientName}</td>
+              <td>{r.doctor}</td>
+              <td>{r.createdAt}</td>
+              <td>
+                <Link href={`/client-reports/${r.id}`}>View</Link>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

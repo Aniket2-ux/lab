@@ -14,100 +14,89 @@ type Test = {
   parameters: Parameter[];
 };
 
-export default function ClientReportPage() {
-  const [patient, setPatient] = useState({
-    clientId: "",
-    name: "",
-    age: "",
-    gender: "",
-    doctor: "",
-    password: "",
-  });
+export default function ClientLabReportPage() {
+  const [clientId, setClientId] = useState("");
+  const [patientName, setPatientName] = useState("");
+  const [age, setAge] = useState("");
+  const [gender, setGender] = useState("");
+  const [doctor, setDoctor] = useState("");
+  const [password, setPassword] = useState("");
 
   const [tests, setTests] = useState<Test[]>([
     {
-      testName: "CBC",
+      testName: "",
       parameters: [
-        { name: "Hemoglobin", result: "", unit: "g/dL", range: "13 – 17" },
+        { name: "", result: "", unit: "", range: "" },
       ],
     },
   ]);
 
-  /* ---------------- ADD TEST ---------------- */
   const addTest = () => {
     setTests([
       ...tests,
-      {
-        testName: "",
-        parameters: [{ name: "", result: "", unit: "", range: "" }],
-      },
+      { testName: "", parameters: [{ name: "", result: "", unit: "", range: "" }] },
     ]);
   };
 
-  /* ---------------- ADD PARAMETER ---------------- */
-  const addParameter = (testIndex: number) => {
+  const addParameter = (ti: number) => {
     const copy = [...tests];
-    copy[testIndex].parameters.push({
-      name: "",
-      result: "",
-      unit: "",
-      range: "",
-    });
+    copy[ti].parameters.push({ name: "", result: "", unit: "", range: "" });
     setTests(copy);
   };
 
-  /* ---------------- SAVE REPORT ---------------- */
-  const saveReport = async () => {
-    const payload = { patient, tests };
+  const saveReport = () => {
+    if (!clientId || !password) {
+      alert("Client ID and password required");
+      return;
+    }
 
-    console.log("Saving report", payload);
+    const report = {
+      id: Date.now().toString(),
+      clientId,
+      patientName,
+      age,
+      gender,
+      doctor,
+      password,
+      createdAt: new Date().toLocaleString(),
+      tests,
+    };
 
-    // later connect backend
-    alert("Report saved (UI working)");
+    const existing = JSON.parse(
+      localStorage.getItem("clientReports") || "[]"
+    );
+
+    localStorage.setItem(
+      "clientReports",
+      JSON.stringify([report, ...existing])
+    );
+
+    alert("Report saved successfully");
   };
 
   return (
     <div style={{ maxWidth: 1000, margin: "0 auto", padding: 24 }}>
       <h2>Client Lab Report</h2>
 
-      {/* ================= PATIENT INFO ================= */}
-      <div className="card">
-        <div className="grid">
-          <input placeholder="Client ID"
-            onChange={(e) => setPatient({ ...patient, clientId: e.target.value })} />
-          <input placeholder="Patient Name"
-            onChange={(e) => setPatient({ ...patient, name: e.target.value })} />
-          <input placeholder="Age"
-            onChange={(e) => setPatient({ ...patient, age: e.target.value })} />
-          <select
-            onChange={(e) => setPatient({ ...patient, gender: e.target.value })}
-          >
-            <option value="">Gender</option>
-            <option>Male</option>
-            <option>Female</option>
-          </select>
-
-          <DoctorSelect
-            value={patient.doctor}
-            onChange={(v) => setPatient({ ...patient, doctor: v })}
-          />
-
-          <input
-            placeholder="Report Password"
-            type="password"
-            onChange={(e) =>
-              setPatient({ ...patient, password: e.target.value })
-            }
-          />
-        </div>
+      {/* PATIENT INFO */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+        <input placeholder="Client ID" onChange={(e) => setClientId(e.target.value)} />
+        <input placeholder="Patient Name" onChange={(e) => setPatientName(e.target.value)} />
+        <input placeholder="Age" onChange={(e) => setAge(e.target.value)} />
+        <input placeholder="Gender" onChange={(e) => setGender(e.target.value)} />
+        <input placeholder="Doctor Name" onChange={(e) => setDoctor(e.target.value)} />
+        <input
+          type="password"
+          placeholder="Report Password"
+          onChange={(e) => setPassword(e.target.value)}
+        />
       </div>
 
-      {/* ================= TESTS ================= */}
+      {/* TESTS */}
       {tests.map((test, ti) => (
-        <div className="card" key={ti}>
+        <div key={ti} style={{ marginTop: 24, border: "1px solid #ddd", padding: 16 }}>
           <input
-            placeholder="Test Name (CBC / LFT / Lipid)"
-            value={test.testName}
+            placeholder="Test Name (CBC, LFT, Lipid...)"
             onChange={(e) => {
               const copy = [...tests];
               copy[ti].testName = e.target.value;
@@ -115,7 +104,7 @@ export default function ClientReportPage() {
             }}
           />
 
-          <table>
+          <table width="100%" style={{ marginTop: 12 }}>
             <thead>
               <tr>
                 <th>Parameter</th>
@@ -129,7 +118,6 @@ export default function ClientReportPage() {
                 <tr key={pi}>
                   <td>
                     <input
-                      value={p.name}
                       onChange={(e) => {
                         const copy = [...tests];
                         copy[ti].parameters[pi].name = e.target.value;
@@ -139,7 +127,6 @@ export default function ClientReportPage() {
                   </td>
                   <td>
                     <input
-                      value={p.result}
                       onChange={(e) => {
                         const copy = [...tests];
                         copy[ti].parameters[pi].result = e.target.value;
@@ -149,7 +136,6 @@ export default function ClientReportPage() {
                   </td>
                   <td>
                     <input
-                      value={p.unit}
                       onChange={(e) => {
                         const copy = [...tests];
                         copy[ti].parameters[pi].unit = e.target.value;
@@ -159,7 +145,6 @@ export default function ClientReportPage() {
                   </td>
                   <td>
                     <input
-                      value={p.range}
                       onChange={(e) => {
                         const copy = [...tests];
                         copy[ti].parameters[pi].range = e.target.value;
@@ -176,79 +161,10 @@ export default function ClientReportPage() {
         </div>
       ))}
 
-      <div style={{ display: "flex", gap: 12 }}>
-        <button onClick={addTest}>+ Add Test</button>
-        <button onClick={saveReport}>Save Report</button>
-      </div>
-
-      {/* SIMPLE STYLES */}
-      <style jsx>{`
-        .card {
-          background: #fff;
-          padding: 16px;
-          border-radius: 10px;
-          margin-bottom: 20px;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        }
-        .grid {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 12px;
-        }
-        input, select {
-          padding: 8px;
-          border: 1px solid #ddd;
-          border-radius: 6px;
-        }
-        table {
-          width: 100%;
-          margin-top: 12px;
-          border-collapse: collapse;
-        }
-        th, td {
-          border-bottom: 1px solid #eee;
-          padding: 8px;
-        }
-      `}</style>
-    </div>
-  );
-}
-
-/* ================= DOCTOR SELECT ================= */
-function DoctorSelect({
-  value,
-  onChange,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-}) {
-  const [doctors, setDoctors] = useState(["Dr. Sharma", "Dr. Patel"]);
-  const [newDoc, setNewDoc] = useState("");
-
-  return (
-    <div>
-      <select value={value} onChange={(e) => onChange(e.target.value)}>
-        <option value="">Select Doctor</option>
-        {doctors.map((d) => (
-          <option key={d}>{d}</option>
-        ))}
-      </select>
-
-      <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
-        <input
-          placeholder="Add doctor"
-          value={newDoc}
-          onChange={(e) => setNewDoc(e.target.value)}
-        />
-        <button
-          onClick={() => {
-            if (!newDoc) return;
-            setDoctors([...doctors, newDoc]);
-            onChange(newDoc);
-            setNewDoc("");
-          }}
-        >
-          +
+      <div style={{ marginTop: 20 }}>
+        <button onClick={addTest}>+ Add Test</button>{" "}
+        <button onClick={saveReport} style={{ background: "#00854b", color: "#fff" }}>
+          Save Report
         </button>
       </div>
     </div>
