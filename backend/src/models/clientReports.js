@@ -1,38 +1,52 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../db");
 
-const ClientReport = sequelize.define("ClientReport", {
-  id: {
-    type: DataTypes.INTEGER,
-    autoIncrement: true,
-    primaryKey: true,
-  },
+const ClientReport = sequelize.define(
+  "ClientReport",
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
+      primaryKey: true,
+    },
 
-  reportCode: {
-    type: DataTypes.STRING,
-    unique: true,
-    allowNull: false,
-  },
+    /* Link report to client */
+    clientId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
 
-  clientName: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
+    reportCode: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true,
+    },
 
-  testName: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
+    clientName: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
 
-  pdfPath: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
+    testName: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
 
-  passwordHash: {
-    type: DataTypes.STRING,
-    allowNull: false,
+    pdfPath: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+
+    /* bcrypt hash of password */
+    passwordHash: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
   },
-});
+  {
+    tableName: "client_reports",
+    timestamps: true,
+  }
+);
 
 module.exports = ClientReport;

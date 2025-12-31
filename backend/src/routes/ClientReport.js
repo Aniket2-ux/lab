@@ -1,69 +1,79 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
-const multer = require("multer");
-const path = require("path");
-
-const ClientReport = require("../models/ClientReport");
-
 const router = express.Router();
 
-/* ---------------- UPLOAD SETUP ---------------- */
-const upload = multer({
-  dest: "uploads/reports/",
+const { Client, LabRecord } = require("../models");
+
+/*
+  PURPOSE:
+  - Admin creates report
+  - Admin sets password
+  - Client can VIEW report using phone/email + password
+*/
+
+/* =========================
+   ADMIN: CREATE / UPDATE PASSWORD
+========================= */
+router.post("/set-password", async (req, res) => {
+  try {
+    const { clientId, password } = req.body;
+
+    if (!clientId || !password) {
+      return res.status(400).json({ error: "clientId and password required" });
+    }
+
+    const hash = await bcrypt.hash(password, 10);
+
+    await Client.update(
+      { reportPassword: hash },
+      { where: { id: clientId } }
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to set password" });
+  }
 });
 
-/* ---------------- ADMIN CREATE REPORT ---------------- */
-router.post(
-  "/",
-  upload.single("pdf"),
-  async (req, res) => {
-    try {
-      const { reportCode, clientName, testName, password } = req.body;
-
-      if (!req.file || !password) {
-        return res.status(400).json({ error: "Missing data" });
-      }
-
-      const hash = await bcrypt.hash(password, 10);
-
-      const report = await ClientReport.create({
-        reportCode,
-        clientName,
-        testName,
-        pdfPath: req.file.path,
-        passwordHash: hash,
-      });
-
-      res.json({ success: true, reportCode: report.reportCode });
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: "Report creation failed" });
-    }
-  }
-);
-
-/* ---------------- CLIENT ACCESS REPORT ---------------- */
-router.post("/access", async (req, res) => {
+/* =========================
+   CLIENT: VIEW REPORT
+========================= */
+router.post("/view", async (req, res) => {
   try {
-    const { reportCode, password } = req.body;
+    const { identifier, password } = req.body;
 
-    const report = await ClientReport.findOne({ where: { reportCode } });
-    if (!report) {
-      return res.status(404).json({ error: "Report not found" });
+    // identifier = phone OR email
+    const client = await Client.findOne({
+      where: {
+        $or: [{ phone: identifier }, { email: identifier }],
+      },
+    });
+
+    if (!client || !client.reportPassword) {
+      return res.status(401).json({ error: "Invalid credentials" });
     }
 
-    const match = await bcrypt.compare(password, report.passwordHash);
+    const match = await bcrypt.compare(password, client.reportPassword);
     if (!match) {
-      return res.status(401).json({ error: "Invalid password" });
+      return res.status(401).json({ error: "Invalid credentials" });
     }
+
+    const reports = await LabRecord.findAll({
+      where: { clientId: client.id },
+      order: [["createdAt", "DESC"]],
+    });
 
     res.json({
-      clientName: report.clientName,
-      testName: report.testName,
-      pdfUrl: `/${report.pdfPath}`,
+      client: {
+        id: client.id,
+        name: client.fullName,
+      },
+      reports,
     });
-  } catch {
-    res.status(500).json({ error: "Access failed" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch reports" });
   }
 });
 
