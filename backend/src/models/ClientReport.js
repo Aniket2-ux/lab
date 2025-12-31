@@ -2,15 +2,21 @@ const { DataTypes } = require("sequelize");
 const sequelize = require("../db");
 
 const ClientReport = sequelize.define("ClientReport", {
-  reportCode: { type: DataTypes.STRING, unique: true },
+  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+
+  clientId: DataTypes.STRING,
   patientName: DataTypes.STRING,
-  age: DataTypes.STRING,
+  age: DataTypes.INTEGER,
   gender: DataTypes.STRING,
-  doctorName: DataTypes.STRING,
-  testName: DataTypes.STRING,
-  sampleDate: DataTypes.DATE,
-  reportDate: DataTypes.DATE,
+
+  doctorId: DataTypes.INTEGER,
+
   passwordHash: DataTypes.STRING,
+
+  tests: {
+    type: DataTypes.JSONB, // REAL STRUCTURE
+    allowNull: false,
+  },
 });
 
 module.exports = ClientReport;
