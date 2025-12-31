@@ -1,64 +1,47 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const ClientReport = require("../models/ClientReport");
+const ReportParameter = require("../models/ReportParameter");
 
 const router = express.Router();
 
-/**
- * CREATE REPORT
- */
+/* CREATE REPORT */
 router.post("/", async (req, res) => {
-  try {
-    const {
-      clientId,
-      patientName,
-      age,
-      gender,
-      doctorName,
-      password,
-      testData,
-    } = req.body;
+  const { clientName, testName, password, parameters } = req.body;
 
-    const passwordHash = await bcrypt.hash(password, 10);
+  const passwordHash = await bcrypt.hash(password, 10);
+  const reportCode = "REP-" + Date.now();
 
-    const report = await ClientReport.create({
-      clientId,
-      patientName,
-      age,
-      gender,
-      doctorName,
-      passwordHash,
-      testData,
-    });
-
-    res.json(report);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Failed to create report" });
-  }
-});
-
-/**
- * LIST REPORTS (ADMIN VIEW)
- */
-router.get("/", async (_req, res) => {
-  const reports = await ClientReport.findAll({
-    order: [["createdAt", "DESC"]],
+  const report = await ClientReport.create({
+    reportCode,
+    clientName,
+    testName,
+    passwordHash,
   });
-  res.json(reports);
+
+  for (const p of parameters) {
+    await ReportParameter.create({
+      reportId: report.id,
+      ...p,
+    });
+  }
+
+  res.json({ success: true, reportCode });
 });
 
-/**
- * CLIENT ACCESS (PASSWORD)
- */
-router.post("/access", async (req, res) => {
-  const { clientId, password } = req.body;
+/* VIEW REPORT */
+router.post("/view", async (req, res) => {
+  const { reportCode, password } = req.body;
 
-  const report = await ClientReport.findOne({ where: { clientId } });
+  const report = await ClientReport.findOne({
+    where: { reportCode },
+    include: ReportParameter,
+  });
+
   if (!report) return res.status(404).json({ error: "Not found" });
 
   const ok = await bcrypt.compare(password, report.passwordHash);
-  if (!ok) return res.status(401).json({ error: "Invalid password" });
+  if (!ok) return res.status(401).json({ error: "Wrong password" });
 
   res.json(report);
 });

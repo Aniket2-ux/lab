@@ -1,33 +1,52 @@
 "use client";
-import { useState } from "react";
-import { apiClient } from "@/lib/apiClient";
 
-export default function ClientAccess() {
-  const [clientId, setClientId] = useState("");
-  const [password, setPassword] = useState("");
-  const [report, setReport] = useState<any>(null);
+import { useEffect, useState } from "react";
+import Link from "next/link";
 
-  const view = async () => {
-    const data = await apiClient("/api/client-reports/access", {
-      method: "POST",
-      body: JSON.stringify({ clientId, password }),
-    });
-    setReport(data);
-  };
+export default function ClientReportsPage() {
+  const [reports, setReports] = useState<any[]>([]);
+
+  useEffect(() => {
+    const data = JSON.parse(
+      localStorage.getItem("clientReports") || "[]"
+    );
+    setReports(data);
+  }, []);
 
   return (
-    <div style={{ padding: 24 }}>
+    <div style={{ maxWidth: 900, margin: "0 auto", padding: 24 }}>
       <h2>Lab Report Access</h2>
 
-      <input placeholder="Client ID" onChange={e => setClientId(e.target.value)} />
-      <input placeholder="Password" type="password"
-        onChange={e => setPassword(e.target.value)} />
+      <table width="100%" style={{ marginTop: 16 }}>
+        <thead>
+          <tr>
+            <th>Client ID</th>
+            <th>Patient</th>
+            <th>Doctor</th>
+            <th>Date</th>
+            <th>View</th>
+          </tr>
+        </thead>
+        <tbody>
+          {reports.length === 0 && (
+            <tr>
+              <td colSpan={5}>No reports available</td>
+            </tr>
+          )}
 
-      <button onClick={view}>View</button>
-
-      {report && (
-        <pre>{JSON.stringify(report.testData, null, 2)}</pre>
-      )}
+          {reports.map((r) => (
+            <tr key={r.id}>
+              <td>{r.clientId}</td>
+              <td>{r.patientName}</td>
+              <td>{r.doctor}</td>
+              <td>{r.createdAt}</td>
+              <td>
+                <Link href={`/client-reports/${r.id}`}>View</Link>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
