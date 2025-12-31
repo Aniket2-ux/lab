@@ -1,116 +1,201 @@
 "use client";
 
-import React from "react";
-import Sidebar from "@/components/Sidebar";
-import HeaderBar from "@/components/HeaderBar";
-import BackButton from "@/components/BackButton";
+import { useEffect, useState } from "react";
+import { API_BASE } from "@/lib/apiBase";
 
-const ClientReportPage: React.FC = () => {
+type ClientReport = {
+  id: number;
+  reportCode: string;
+  clientName: string;
+  testName: string;
+  createdAt: string;
+};
+
+export default function ClientReportPage() {
+  const [reports, setReports] = useState<ClientReport[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const [reportCode, setReportCode] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [verifiedReport, setVerifiedReport] = useState<any>(null);
+
+  /* ================= LOAD RECENT REPORTS ================= */
+  useEffect(() => {
+    loadReports();
+  }, []);
+
+  async function loadReports() {
+    try {
+      const res = await fetch(`${API_BASE}/api/client-reports`);
+      const data = await res.json();
+      setReports(data || []);
+    } catch {
+      setReports([]);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  /* ================= VERIFY REPORT ================= */
+  async function verifyReport() {
+    setError("");
+    setVerifiedReport(null);
+
+    try {
+      const res = await fetch(`${API_BASE}/api/client-reports/verify`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reportCode, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "Invalid credentials");
+        return;
+      }
+
+      setVerifiedReport(data.report);
+    } catch {
+      setError("Server error");
+    }
+  }
+
   return (
-    <div className="flex h-screen bg-gray-100">
-      <Sidebar />
+    <div>
+      {/* ================= HEADER ================= */}
+      <h2 style={{ marginBottom: 6 }}>Client Report</h2>
+      <p style={{ color: "#666", marginBottom: 20 }}>
+        View patient reports using Report ID and Password
+      </p>
 
-      <div className="flex flex-1 flex-col">
-        <HeaderBar pageTitle="Reports" />
+      {/* ================= ACCESS PANEL ================= */}
+      <div
+        style={{
+          background: "#fff",
+          padding: 16,
+          borderRadius: 8,
+          marginBottom: 24,
+          maxWidth: 520,
+        }}
+      >
+        <h4>Access Report</h4>
 
-        <main className="flex-1 overflow-y-auto p-6 md:p-8">
-          <BackButton className="mb-4" />
+        <input
+          placeholder="Report ID"
+          value={reportCode}
+          onChange={(e) => setReportCode(e.target.value)}
+          style={{ width: "100%", marginBottom: 10, padding: 10 }}
+        />
 
-          <h1 className="mb-4 text-2xl font-semibold tracking-tight text-gray-800">
-            Client Report
-          </h1>
+        <input
+          placeholder="Password"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          style={{ width: "100%", marginBottom: 10, padding: 10 }}
+        />
 
-          {/* Filter bar */}
-          <section className="mb-6 rounded-md bg-gray-100 p-4 md:p-6">
-            <div className="grid gap-4 md:grid-cols-3">
-              {/* Period */}
-              <div className="flex flex-col text-sm">
-                <span className="mb-1 text-gray-600">Period</span>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="datetime-local"
-                    className="h-9 flex-1 rounded-md border border-gray-300 bg-white px-2 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
-                  />
-                  <span>-</span>
-                  <input
-                    type="datetime-local"
-                    className="h-9 flex-1 rounded-md border border-gray-300 bg-white px-2 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
-                  />
-                </div>
-              </div>
+        <button
+          onClick={verifyReport}
+          style={{
+            background: "#009150",
+            color: "#fff",
+            padding: "8px 16px",
+            border: "none",
+            cursor: "pointer",
+          }}
+        >
+          View Report
+        </button>
 
-              {/* Show client by */}
-              <div className="flex flex-col text-sm">
-                <span className="mb-1 text-gray-600">Show Client By</span>
-                <select className="h-9 rounded-md border border-gray-300 bg-white px-2 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500">
-                  <option>Last Visited Date</option>
-                  <option>Registration Date</option>
-                </select>
-              </div>
+        {error && <p style={{ color: "red", marginTop: 8 }}>{error}</p>}
+      </div>
 
-              {/* Clients */}
-              <div className="flex flex-col text-sm">
-                <span className="mb-1 text-gray-600">Clients</span>
-                <select className="h-9 rounded-md border border-gray-300 bg-white px-2 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500">
-                  <option>All</option>
-                </select>
-              </div>
+      {/* ================= VERIFIED RESULT ================= */}
+      {verifiedReport && (
+        <div
+          style={{
+            background: "#f8fffb",
+            border: "1px solid #cceede",
+            padding: 16,
+            borderRadius: 8,
+            marginBottom: 30,
+          }}
+        >
+          <strong>{verifiedReport.clientName}</strong>
+          <div>{verifiedReport.testName}</div>
 
-              {/* Known us from */}
-              <div className="flex flex-col text-sm md:col-span-1">
-                <span className="mb-1 text-gray-600">Known Us From</span>
-                <select className="h-9 rounded-md border border-gray-300 bg-white px-2 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500">
-                  <option>All</option>
-                </select>
-              </div>
-            </div>
+          <a
+            href={`${API_BASE}/${verifiedReport.pdfPath}`}
+            target="_blank"
+            rel="noreferrer"
+            style={{ color: "#009150", fontWeight: 600 }}
+          >
+            Open PDF Report
+          </a>
+        </div>
+      )}
 
-            <div className="mt-4 flex justify-end">
-              <button className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-emerald-700">
-                APPLY FILTER
-              </button>
-            </div>
-          </section>
+      {/* ================= RECENT REPORTS TABLE ================= */}
+      <div style={{ background: "#fff", borderRadius: 8 }}>
+        <div style={{ padding: 16, borderBottom: "1px solid #eee" }}>
+          <strong>Recently Created Reports</strong>
+        </div>
 
-          {/* Table */}
-          <section className="rounded-md bg-white shadow-sm">
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-left text-sm">
-                <thead className="border-b bg-gray-50 text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  <tr>
-                    <th className="px-4 py-3">Client ID/Name</th>
-                    <th className="px-4 py-3">Age</th>
-                    <th className="px-4 py-3">Gender</th>
-                    <th className="px-4 py-3">Phone</th>
-                    <th className="px-4 py-3">Email</th>
-                    <th className="px-4 py-3">Known Us From</th>
-                    <th className="px-4 py-3">Address</th>
-                    <th className="px-4 py-3">Last Visited At</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td
-                      className="px-4 py-8 text-center text-gray-500"
-                      colSpan={8}
-                    >
-                      No items to show.
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </section>
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <thead>
+            <tr style={{ background: "#f6f7f9", textAlign: "left" }}>
+              <th style={th}>Report ID</th>
+              <th style={th}>Client Name</th>
+              <th style={th}>Test</th>
+              <th style={th}>Created</th>
+            </tr>
+          </thead>
 
-          {/* Footer summary */}
-          <section className="mt-4 flex justify-between rounded-md bg-white px-4 py-3 text-sm font-semibold text-gray-700 shadow-sm">
-            <span>Total Clients</span>
-            <span>0</span>
-          </section>
-        </main>
+          <tbody>
+            {loading ? (
+              <tr>
+                <td colSpan={4} style={td}>
+                  Loading...
+                </td>
+              </tr>
+            ) : reports.length === 0 ? (
+              <tr>
+                <td colSpan={4} style={td}>
+                  No reports found
+                </td>
+              </tr>
+            ) : (
+              reports.map((r) => (
+                <tr key={r.id}>
+                  <td style={td}>{r.reportCode}</td>
+                  <td style={td}>{r.clientName}</td>
+                  <td style={td}>{r.testName}</td>
+                  <td style={td}>
+                    {new Date(r.createdAt).toLocaleDateString()}
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
       </div>
     </div>
   );
+}
+
+/* ================= STYLES ================= */
+
+const th: React.CSSProperties = {
+  padding: 10,
+  fontSize: 13,
+  color: "#666",
 };
 
-export default ClientReportPage;
+const td: React.CSSProperties = {
+  padding: 10,
+  borderTop: "1px solid #eee",
+  fontSize: 14,
+};
