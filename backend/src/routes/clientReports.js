@@ -1,32 +1,24 @@
-const express = require("express");
+const router = require("express").Router();
 const bcrypt = require("bcryptjs");
 const ClientReport = require("../models/ClientReport");
-const ReportParameter = require("../models/ReportParameter");
-
-const router = express.Router();
+const ReportItem = require("../models/ReportItem");
 
 /* CREATE REPORT */
 router.post("/", async (req, res) => {
-  const { clientName, testName, password, parameters } = req.body;
-
-  const passwordHash = await bcrypt.hash(password, 10);
-  const reportCode = "REP-" + Date.now();
+  const { header, items, password } = req.body;
 
   const report = await ClientReport.create({
-    reportCode,
-    clientName,
-    testName,
-    passwordHash,
+    ...header,
+    reportCode: "REP-" + Date.now(),
+    passwordHash: await bcrypt.hash(password, 10),
+    reportDate: new Date(),
   });
 
-  for (const p of parameters) {
-    await ReportParameter.create({
-      reportId: report.id,
-      ...p,
-    });
+  for (const row of items) {
+    await ReportItem.create({ ...row, reportId: report.id });
   }
 
-  res.json({ success: true, reportCode });
+  res.json(report);
 });
 
 /* VIEW REPORT */
@@ -35,7 +27,7 @@ router.post("/view", async (req, res) => {
 
   const report = await ClientReport.findOne({
     where: { reportCode },
-    include: ReportParameter,
+    include: ReportItem,
   });
 
   if (!report) return res.status(404).json({ error: "Not found" });

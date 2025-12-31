@@ -1,80 +1,71 @@
 "use client";
-
 import { useState } from "react";
 
-const CBC_TEMPLATE = [
-  { parameter: "Hemoglobin", unit: "g/dL", normalRange: "13–17" },
-  { parameter: "WBC", unit: "/µL", normalRange: "4000–11000" },
-  { parameter: "Platelets", unit: "/µL", normalRange: "150000–450000" },
-];
+export default function CreateClientReport() {
+  const [header, setHeader] = useState({
+    patientName: "",
+    age: "",
+    gender: "",
+    doctorName: "",
+    testName: "CBC",
+    sampleDate: "",
+  });
 
-export default function ClientReportPage() {
-  const [clientName, setClientName] = useState("");
   const [password, setPassword] = useState("");
-  const [rows, setRows] = useState(
-    CBC_TEMPLATE.map((p) => ({ ...p, value: "" }))
-  );
-  const [code, setCode] = useState("");
+  const [rows, setRows] = useState([
+    { parameter: "Hemoglobin", result: "", unit: "g/dL", normalRange: "13–17", flag: "" },
+    { parameter: "WBC", result: "", unit: "/µL", normalRange: "4000–11000", flag: "" },
+    { parameter: "Platelets", result: "", unit: "/µL", normalRange: "150000–450000", flag: "" },
+  ]);
 
-  async function createReport() {
-    const res = await fetch("/api/client-reports", {
+  async function save() {
+    await fetch("/api/client-reports", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        clientName,
-        testName: "CBC",
-        password,
-        parameters: rows.map((r) => ({
-          ...r,
-          flag: "Normal",
-        })),
-      }),
+      body: JSON.stringify({ header, items: rows, password }),
     });
-
-    const json = await res.json();
-    setCode(json.reportCode);
+    alert("Report Created");
   }
 
   return (
-    <div style={{ maxWidth: 900, margin: "auto" }}>
-      <h2>Client Report (CBC)</h2>
+    <div className="card">
+      <h2>Client Lab Report</h2>
 
-      <input placeholder="Client Name" onChange={(e) => setClientName(e.target.value)} />
-      <input placeholder="Report Password" onChange={(e) => setPassword(e.target.value)} />
+      <div className="grid">
+        <input placeholder="Patient Name" onChange={e => setHeader({...header, patientName:e.target.value})}/>
+        <input placeholder="Age" onChange={e => setHeader({...header, age:e.target.value})}/>
+        <input placeholder="Gender" onChange={e => setHeader({...header, gender:e.target.value})}/>
+        <input placeholder="Doctor Name" onChange={e => setHeader({...header, doctorName:e.target.value})}/>
+        <input type="date" onChange={e => setHeader({...header, sampleDate:e.target.value})}/>
+        <input placeholder="Report Password" onChange={e => setPassword(e.target.value)}/>
+      </div>
 
       <table>
         <thead>
           <tr>
-            <th>Parameter</th>
-            <th>Value</th>
+            <th>Test Parameter</th>
+            <th>Result</th>
             <th>Unit</th>
             <th>Normal Range</th>
+            <th>Flag</th>
           </tr>
         </thead>
         <tbody>
-          {rows.map((r, i) => (
+          {rows.map((r,i)=>(
             <tr key={i}>
               <td>{r.parameter}</td>
-              <td>
-                <input
-                  value={r.value}
-                  onChange={(e) => {
-                    const copy = [...rows];
-                    copy[i].value = e.target.value;
-                    setRows(copy);
-                  }}
-                />
-              </td>
+              <td><input onChange={e=>{
+                const x=[...rows];x[i].result=e.target.value;setRows(x);
+              }}/></td>
               <td>{r.unit}</td>
               <td>{r.normalRange}</td>
+              <td>{r.flag}</td>
             </tr>
           ))}
         </tbody>
       </table>
 
-      <button onClick={createReport}>Create Report</button>
-
-      {code && <p><b>Report Code:</b> {code}</p>}
+      <button onClick={save}>Create Report</button>
     </div>
   );
 }

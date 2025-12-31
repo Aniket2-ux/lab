@@ -1,5 +1,5 @@
 const ClientReport = require("./ClientReport");
-const ReportParameter = require("./ReportParameter");
+const ReportItem = require("./ReportItem");
 
-ClientReport.hasMany(ReportParameter, { foreignKey: "reportId" });
-ReportParameter.belongsTo(ClientReport, { foreignKey: "reportId" });
+ClientReport.hasMany(ReportItem, { foreignKey: "reportId" });
+ReportItem.belongsTo(ClientReport, { foreignKey: "reportId" });
