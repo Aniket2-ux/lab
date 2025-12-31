@@ -1,79 +1,69 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
+const ClientReport = require("../models/ClientReport");
+
 const router = express.Router();
 
-const { Client, LabRecord } = require("../models");
-
-/*
-  PURPOSE:
-  - Admin creates report
-  - Admin sets password
-  - Client can VIEW report using phone/email + password
-*/
-
-/* =========================
-   ADMIN: CREATE / UPDATE PASSWORD
-========================= */
-router.post("/set-password", async (req, res) => {
+/**
+ * ADMIN: Create client report
+ */
+router.post("/", async (req, res) => {
   try {
-    const { clientId, password } = req.body;
+    const { clientId, clientName, testName, pdfPath, password } = req.body;
 
-    if (!clientId || !password) {
-      return res.status(400).json({ error: "clientId and password required" });
+    if (!clientId || !clientName || !testName || !pdfPath || !password) {
+      return res.status(400).json({ error: "All fields required" });
     }
 
-    const hash = await bcrypt.hash(password, 10);
+    const passwordHash = await bcrypt.hash(password, 10);
 
-    await Client.update(
-      { reportPassword: hash },
-      { where: { id: clientId } }
-    );
+    const report = await ClientReport.create({
+      clientId,
+      clientName,
+      testName,
+      pdfPath,
+      reportCode: `REP-${Date.now()}`,
+      passwordHash,
+    });
 
-    res.json({ success: true });
+    res.json({ success: true, report });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Failed to set password" });
+    res.status(500).json({ error: "Failed to create report" });
   }
 });
 
-/* =========================
-   CLIENT: VIEW REPORT
-========================= */
-router.post("/view", async (req, res) => {
+/**
+ * CLIENT: Verify password and get report
+ */
+router.post("/verify", async (req, res) => {
   try {
-    const { identifier, password } = req.body;
+    const { reportCode, password } = req.body;
 
-    // identifier = phone OR email
-    const client = await Client.findOne({
-      where: {
-        $or: [{ phone: identifier }, { email: identifier }],
-      },
-    });
+    const report = await ClientReport.findOne({ where: { reportCode } });
 
-    if (!client || !client.reportPassword) {
-      return res.status(401).json({ error: "Invalid credentials" });
+    if (!report) {
+      return res.status(404).json({ error: "Report not found" });
     }
 
-    const match = await bcrypt.compare(password, client.reportPassword);
+    const match = await bcrypt.compare(password, report.passwordHash);
+
     if (!match) {
-      return res.status(401).json({ error: "Invalid credentials" });
+      return res.status(401).json({ error: "Invalid password" });
     }
-
-    const reports = await LabRecord.findAll({
-      where: { clientId: client.id },
-      order: [["createdAt", "DESC"]],
-    });
 
     res.json({
-      client: {
-        id: client.id,
-        name: client.fullName,
+      success: true,
+      report: {
+        clientName: report.clientName,
+        testName: report.testName,
+        pdfPath: report.pdfPath,
+        createdAt: report.createdAt,
       },
-      reports,
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Failed to fetch reports" });
+    res.status(500).json({ error: "Verification failed" });
   }
 });
 
