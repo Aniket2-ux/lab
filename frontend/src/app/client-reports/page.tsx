@@ -25,7 +25,7 @@ export default function ClientReportsPage() {
       setError("");
 
       const res = await fetch(
-        `${API_BASE}/api/client-reports/verify`,
+        `${API_BASE}/api/client-reports/access`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -35,7 +35,7 @@ export default function ClientReportsPage() {
 
       if (!res.ok) {
         const msg = await res.text();
-        throw new Error(msg || "Invalid credentials");
+        throw new Error(msg || "Invalid report details");
       }
 
       const data = await res.json();
