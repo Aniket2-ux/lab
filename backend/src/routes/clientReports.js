@@ -1,68 +1,29 @@
-const express = require("express");
-const bcrypt = require("bcryptjs");
-const { v4: uuidv4 } = require("uuid");
-const ClientReport = require("../models/ClientReport");
+const PDFDocument = require("pdfkit");
 
-const router = express.Router();
+router.get("/:id/pdf", async (req, res) => {
+  const report = await ClientReport.findByPk(req.params.id);
+  if (!report) return res.sendStatus(404);
 
-/* ===========================
-   CREATE REPORT (ADMIN)
-=========================== */
-router.post("/", async (req, res) => {
-  try {
-    const {
-      patientName,
-      age,
-      gender,
-      doctorName,
-      password,
-      tests,
-    } = req.body;
+  const doc = new PDFDocument({ margin: 40 });
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader(
+    "Content-Disposition",
+    `attachment; filename=report-${report.reportCode}.pdf`
+  );
 
-    if (!patientName || !age || !gender || !doctorName || !password || !tests) {
-      return res.status(400).json({ error: "Missing fields" });
-    }
+  doc.pipe(res);
 
-    const reportCode = uuidv4().slice(0, 8).toUpperCase();
-    const passwordHash = await bcrypt.hash(password, 10);
+  doc.fontSize(18).text("GM Diagnostic Lab", { align: "center" });
+  doc.moveDown();
+  doc.fontSize(12).text(`Patient: ${report.clientName}`);
+  doc.text(`Doctor: ${report.doctorName}`);
+  doc.text(`Test: ${report.testName}`);
+  doc.text(`Date: ${new Date(report.createdAt).toDateString()}`);
+  doc.moveDown();
 
-    const report = await ClientReport.create({
-      reportCode,
-      patientName,
-      age,
-      gender,
-      doctorName,
-      tests,
-      passwordHash,
-    });
+  report.parameters.forEach((p) => {
+    doc.text(`${p.name}: ${p.result} ${p.unit} (Normal: ${p.range})`);
+  });
 
-    res.json({
-      success: true,
-      reportCode,
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Failed to create report" });
-  }
+  doc.end();
 });
-
-/* ===========================
-   CLIENT ACCESS REPORT
-=========================== */
-router.post("/access", async (req, res) => {
-  try {
-    const { reportCode, password } = req.body;
-
-    const report = await ClientReport.findOne({ where: { reportCode } });
-    if (!report) return res.status(404).json({ error: "Invalid report code" });
-
-    const ok = await bcrypt.compare(password, report.passwordHash);
-    if (!ok) return res.status(401).json({ error: "Wrong password" });
-
-    res.json(report);
-  } catch (err) {
-    res.status(500).json({ error: "Server error" });
-  }
-});
-
-module.exports = router;
