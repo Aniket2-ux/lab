@@ -3,6 +3,15 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 
+/* ---------------- TYPES ---------------- */
+
+type TestResult = {
+  testName: string;
+  result: string;
+  unit: string;
+  range: string;
+};
+
 type Report = {
   id: number;
   patientName: string;
@@ -11,10 +20,15 @@ type Report = {
   doctorName: string;
   reportCode: string;
   createdAt: string;
+  tests?: TestResult[];
 };
+
+/* ---------------- CONFIG ---------------- */
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE || "http://145.223.23.176:5000";
+
+/* ---------------- PAGE ---------------- */
 
 export default function ClientReportViewPage() {
   const { id } = useParams();
@@ -24,13 +38,12 @@ export default function ClientReportViewPage() {
   useEffect(() => {
     async function loadReport() {
       try {
-        const res = await fetch(
-          `${API_BASE}/api/client-reports/${id}`
-        );
+        const res = await fetch(`${API_BASE}/api/client-reports/${id}`);
+        if (!res.ok) throw new Error("Failed");
         const data = await res.json();
         setReport(data);
       } catch (e) {
-        console.error("Failed to load report");
+        console.error("Failed to load report", e);
       } finally {
         setLoading(false);
       }
@@ -40,7 +53,7 @@ export default function ClientReportViewPage() {
   }, [id]);
 
   if (loading) {
-    return <div style={center}>Loading report...</div>;
+    return <div style={center}>Loading report…</div>;
   }
 
   if (!report) {
@@ -54,9 +67,7 @@ export default function ClientReportViewPage() {
         <div style={header}>
           <div>
             <h2 style={{ margin: 0 }}>GM Diagnostic Lab</h2>
-            <p style={muted}>
-              Trusted Pathology & Diagnostic Center
-            </p>
+            <p style={muted}>Trusted Pathology & Diagnostic Center</p>
           </div>
           <div style={{ textAlign: "right" }}>
             <strong>Report Code</strong>
@@ -80,26 +91,33 @@ export default function ClientReportViewPage() {
 
         <hr />
 
-        {/* PLACEHOLDER FOR TEST RESULTS */}
+        {/* TEST RESULTS */}
         <h3 style={sectionTitle}>Test Results</h3>
-        <table style={table}>
-          <thead>
-            <tr>
-              <th>Test</th>
-              <th>Result</th>
-              <th>Unit</th>
-              <th>Reference Range</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Sample Test</td>
-              <td>Normal</td>
-              <td>-</td>
-              <td>Normal</td>
-            </tr>
-          </tbody>
-        </table>
+
+        {report.tests && report.tests.length > 0 ? (
+          <table style={table}>
+            <thead>
+              <tr>
+                <th style={th}>Test</th>
+                <th style={th}>Result</th>
+                <th style={th}>Unit</th>
+                <th style={th}>Reference Range</th>
+              </tr>
+            </thead>
+            <tbody>
+              {report.tests.map((t, i) => (
+                <tr key={i}>
+                  <td style={td}>{t.testName}</td>
+                  <td style={td}>{t.result}</td>
+                  <td style={td}>{t.unit || "-"}</td>
+                  <td style={td}>{t.range || "-"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p style={muted}>No test results available.</p>
+        )}
 
         {/* FOOTER */}
         <div style={footer}>
@@ -175,6 +193,18 @@ const valueStyle = {
 const table = {
   width: "100%",
   borderCollapse: "collapse" as const,
+  marginTop: "10px",
+};
+
+const th = {
+  borderBottom: "1px solid #000",
+  padding: "8px",
+  textAlign: "left" as const,
+};
+
+const td = {
+  borderBottom: "1px solid #ddd",
+  padding: "8px",
 };
 
 const footer = {

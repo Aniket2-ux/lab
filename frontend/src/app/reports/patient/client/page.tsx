@@ -2,20 +2,16 @@
 
 import { useEffect, useState } from "react";
 
-type Report = {
-  id: number;
-  patientName: string;
-  age: number;
-  gender: string;
-  doctorName: string;
-  reportCode: string;
-  password: string;
+const API = process.env.NEXT_PUBLIC_API_BASE;
+
+type TestRow = {
+  testName: string;
+  result: string;
+  unit: string;
+  range: string;
 };
 
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE || "http://145.223.23.176:5000";
-
-export default function ClientReportPage() {
+export default function ClientReportCreatePage() {
   const [form, setForm] = useState({
     patientName: "",
     age: "",
@@ -24,239 +20,166 @@ export default function ClientReportPage() {
     password: "",
   });
 
-  const [reports, setReports] = useState<Report[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [tests, setTests] = useState<TestRow[]>([
+    { testName: "", result: "", unit: "", range: "" },
+  ]);
 
-  /* ---------------- LOAD REPORTS SAFELY ---------------- */
+  const [saved, setSaved] = useState<any[]>([]);
+
+  const addTest = () => {
+    setTests([...tests, { testName: "", result: "", unit: "", range: "" }]);
+  };
+
+  const updateTest = (i: number, field: keyof TestRow, value: string) => {
+    const copy = [...tests];
+    copy[i][field] = value;
+    setTests(copy);
+  };
+
   const loadReports = async () => {
-    try {
-      const res = await fetch(`${API_BASE}/api/client-reports`);
-      if (!res.ok) return; // prevent crash
-      const data = await res.json();
-      setReports(data || []);
-    } catch {
-      // silently ignore – page must not crash
-    }
+    const res = await fetch(`${API}/api/client-reports`);
+    if (res.ok) setSaved(await res.json());
   };
 
   useEffect(() => {
     loadReports();
   }, []);
 
-  /* ---------------- SAVE REPORT ---------------- */
   const saveReport = async () => {
-    if (
-      !form.patientName ||
-      !form.age ||
-      !form.gender ||
-      !form.doctorName ||
-      !form.password
-    ) {
-      setError("Please fill all fields");
-      return;
-    }
+    const reportCode = "REP-" + Date.now();
 
-    try {
-      setLoading(true);
-      setError("");
+    await fetch(`${API}/api/client-reports`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...form,
+        age: Number(form.age),
+        reportCode,
+        tests,
+      }),
+    });
 
-      const reportCode = "REP-" + Date.now();
+    setForm({
+      patientName: "",
+      age: "",
+      gender: "",
+      doctorName: "",
+      password: "",
+    });
 
-      const res = await fetch(`${API_BASE}/api/client-reports`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, reportCode }),
-      });
-
-      if (!res.ok) throw new Error("Failed to save report");
-
-      setForm({
-        patientName: "",
-        age: "",
-        gender: "",
-        doctorName: "",
-        password: "",
-      });
-
-      loadReports();
-    } catch (e: any) {
-      setError(e.message || "Something went wrong");
-    } finally {
-      setLoading(false);
-    }
+    setTests([{ testName: "", result: "", unit: "", range: "" }]);
+    loadReports();
   };
 
   return (
     <div className="page">
       <div className="card">
         <h2>Client Lab Report</h2>
-        <p className="sub">Create a lab report and share code with patient</p>
+        <p>Create a lab report and share code with patient</p>
 
-        <input
-          placeholder="Patient Name"
-          value={form.patientName}
-          onChange={(e) => setForm({ ...form, patientName: e.target.value })}
-        />
+        <input placeholder="Patient Name" value={form.patientName}
+          onChange={e => setForm({ ...form, patientName: e.target.value })} />
 
-        <input
-          placeholder="Age"
-          value={form.age}
-          onChange={(e) => setForm({ ...form, age: e.target.value })}
-        />
+        <input placeholder="Age" value={form.age}
+          onChange={e => setForm({ ...form, age: e.target.value })} />
 
-        <input
-          placeholder="Gender"
-          value={form.gender}
-          onChange={(e) => setForm({ ...form, gender: e.target.value })}
-        />
+        <input placeholder="Gender" value={form.gender}
+          onChange={e => setForm({ ...form, gender: e.target.value })} />
 
-        <input
-          placeholder="Doctor Name"
-          value={form.doctorName}
-          onChange={(e) => setForm({ ...form, doctorName: e.target.value })}
-        />
+        <input placeholder="Doctor Name" value={form.doctorName}
+          onChange={e => setForm({ ...form, doctorName: e.target.value })} />
 
-        <input
-          type="password"
-          placeholder="Report Password"
-          value={form.password}
-          onChange={(e) => setForm({ ...form, password: e.target.value })}
-        />
+        <input placeholder="Report Password" value={form.password}
+          onChange={e => setForm({ ...form, password: e.target.value })} />
 
-        {error && <div className="error">{error}</div>}
+        <h3>Test Results</h3>
 
-        <button onClick={saveReport} disabled={loading}>
-          {loading ? "Saving..." : "Save Report"}
-        </button>
+        {tests.map((t, i) => (
+          <div key={i} className="testRow">
+            <input placeholder="Test Name"
+              value={t.testName}
+              onChange={e => updateTest(i, "testName", e.target.value)} />
+
+            <input placeholder="Result"
+              value={t.result}
+              onChange={e => updateTest(i, "result", e.target.value)} />
+
+            <input placeholder="Unit"
+              value={t.unit}
+              onChange={e => updateTest(i, "unit", e.target.value)} />
+
+            <input placeholder="Reference Range"
+              value={t.range}
+              onChange={e => updateTest(i, "range", e.target.value)} />
+          </div>
+        ))}
+
+        <button onClick={addTest} className="secondary">+ Add Test</button>
+        <button onClick={saveReport}>Save Report</button>
       </div>
 
-      {/* ---------- SAVED REPORTS ---------- */}
-      <div className="list">
+      <div className="saved">
         <h3>Saved Reports</h3>
-
-        {reports.length === 0 && (
-          <p className="empty">No reports created yet</p>
-        )}
-
-        {reports.map((r) => (
-          <div key={r.id} className="row">
-            <div>
-              <strong>{r.patientName}</strong>
-              <div className="meta">
-                Dr. {r.doctorName} • {r.gender}, {r.age}
-              </div>
-            </div>
-
-            <div className="codes">
-              <span>Code: {r.reportCode}</span>
-              <span>Pass: {r.password}</span>
-            </div>
+        {saved.map((r) => (
+          <div key={r.id} className="savedRow">
+            <strong>{r.patientName}</strong>
+            <span>Code: {r.reportCode}</span>
+            <span>Pass: {r.password}</span>
           </div>
         ))}
       </div>
 
-      {/* ---------- STYLES ---------- */}
       <style jsx>{`
         .page {
           min-height: 100vh;
-          background: linear-gradient(120deg, #e8f5e9, #ffffff);
-          padding: 40px 16px;
+          background: linear-gradient(120deg,#e8f5e9,#fff);
+          padding: 40px;
         }
-
         .card {
-          max-width: 420px;
+          max-width: 520px;
           margin: auto;
           background: #fff;
-          padding: 28px;
+          padding: 24px;
           border-radius: 14px;
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
+          box-shadow: 0 20px 40px rgba(0,0,0,.1);
         }
-
-        h2 {
-          margin: 0;
-          text-align: center;
-          color: #0f5132;
-        }
-
-        .sub {
-          text-align: center;
-          font-size: 13px;
-          color: #6c757d;
-          margin-bottom: 10px;
-        }
-
         input {
-          padding: 12px;
+          width: 100%;
+          padding: 10px;
+          margin-bottom: 10px;
           border-radius: 8px;
-          border: 1px solid #ced4da;
-          font-size: 14px;
+          border: 1px solid #ccc;
         }
-
-        input:focus {
-          outline: none;
-          border-color: #198754;
+        .testRow {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 8px;
         }
-
         button {
+          width: 100%;
           padding: 12px;
+          margin-top: 10px;
           background: #198754;
           color: #fff;
           border: none;
           border-radius: 8px;
           font-weight: 600;
-          cursor: pointer;
         }
-
-        button:disabled {
-          background: #9fd3b0;
+        .secondary {
+          background: #e9ecef;
+          color: #000;
         }
-
-        .error {
-          background: #f8d7da;
-          color: #842029;
-          padding: 8px;
-          border-radius: 6px;
-          font-size: 13px;
-          text-align: center;
+        .saved {
+          max-width: 700px;
+          margin: 40px auto;
         }
-
-        .list {
-          max-width: 720px;
-          margin: 40px auto 0;
-        }
-
-        .row {
+        .savedRow {
           background: #fff;
-          padding: 14px;
-          border-radius: 10px;
+          padding: 12px;
+          border-radius: 8px;
+          margin-bottom: 10px;
           display: flex;
           justify-content: space-between;
-          align-items: center;
-          margin-bottom: 10px;
-          box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
-        }
-
-        .meta {
-          font-size: 12px;
-          color: #6c757d;
-        }
-
-        .codes {
-          text-align: right;
-          font-size: 13px;
-          color: #198754;
-          display: flex;
-          flex-direction: column;
-        }
-
-        .empty {
-          text-align: center;
-          color: #6c757d;
-          font-size: 14px;
         }
       `}</style>
     </div>
