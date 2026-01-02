@@ -24,26 +24,28 @@ export default function ClientReportsPage() {
       setLoading(true);
       setError("");
 
-      const res = await fetch(
-        `${API_BASE}/api/client-reports/access`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ reportCode, password }),
-        }
-      );
+      const res = await fetch(`${API_BASE}/api/client-reports/verify`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          reportCode: reportCode.trim(),
+          password: password.trim(),
+        }),
+      });
 
       if (!res.ok) {
         const msg = await res.text();
-        throw new Error(msg || "Invalid report details");
+        throw new Error(msg || "Invalid report code or password");
       }
 
       const data = await res.json();
 
-      // redirect to report view page
+      // Redirect to report view page
       router.push(`/client-reports/${data.id}`);
     } catch (err: any) {
-      setError(err.message || "Failed to open report");
+      setError(err.message || "Unable to connect to server");
     } finally {
       setLoading(false);
     }
@@ -84,8 +86,8 @@ export default function ClientReportsPage() {
           justify-content: center;
           align-items: center;
           background: linear-gradient(
-              rgba(255, 255, 255, 0.9),
-              rgba(255, 255, 255, 0.9)
+              rgba(255, 255, 255, 0.92),
+              rgba(255, 255, 255, 0.92)
             ),
             url("https://images.unsplash.com/photo-1580281657527-47f249e8f0d1");
           background-size: cover;
@@ -97,7 +99,7 @@ export default function ClientReportsPage() {
           background: #ffffff;
           border-radius: 14px;
           padding: 32px;
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
         }
 
         h1 {
@@ -141,6 +143,7 @@ export default function ClientReportsPage() {
 
         button:disabled {
           background: #8fd19e;
+          cursor: not-allowed;
         }
 
         .error {
