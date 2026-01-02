@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
+import html2pdf from "html2pdf.js";
 
 /* ---------------- TYPES ---------------- */
 
@@ -35,6 +36,8 @@ export default function ClientReportViewPage() {
   const [report, setReport] = useState<Report | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const pdfRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     async function loadReport() {
       try {
@@ -42,8 +45,8 @@ export default function ClientReportViewPage() {
         if (!res.ok) throw new Error("Failed");
         const data = await res.json();
         setReport(data);
-      } catch (e) {
-        console.error("Failed to load report", e);
+      } catch {
+        setReport(null);
       } finally {
         setLoading(false);
       }
@@ -52,17 +55,27 @@ export default function ClientReportViewPage() {
     if (id) loadReport();
   }, [id]);
 
-  if (loading) {
-    return <div style={center}>Loading report…</div>;
-  }
+  const downloadPDF = () => {
+    if (!pdfRef.current) return;
 
-  if (!report) {
-    return <div style={center}>Report not found</div>;
-  }
+    html2pdf()
+      .from(pdfRef.current)
+      .set({
+        margin: 10,
+        filename: `Lab_Report_${report?.reportCode}.pdf`,
+        image: { type: "jpeg", quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+      })
+      .save();
+  };
+
+  if (loading) return <div style={center}>Loading report…</div>;
+  if (!report) return <div style={center}>Report not found</div>;
 
   return (
     <div style={page}>
-      <div style={sheet}>
+      <div ref={pdfRef} style={sheet}>
         {/* HEADER */}
         <div style={header}>
           <div>
@@ -94,7 +107,7 @@ export default function ClientReportViewPage() {
         {/* TEST RESULTS */}
         <h3 style={sectionTitle}>Test Results</h3>
 
-        {report.tests && report.tests.length > 0 ? (
+        {report.tests?.length ? (
           <table style={table}>
             <thead>
               <tr>
@@ -125,11 +138,17 @@ export default function ClientReportViewPage() {
             <strong>Authorized By</strong>
             <div>GM Diagnostic Lab</div>
           </div>
-
-          <button style={printBtn} onClick={() => window.print()}>
-            Print Report
-          </button>
         </div>
+      </div>
+
+      {/* ACTION BUTTONS */}
+      <div style={actionBar}>
+        <button style={outlineBtn} onClick={() => window.print()}>
+          Print Report
+        </button>
+        <button style={primaryBtn} onClick={downloadPDF}>
+          Download PDF
+        </button>
       </div>
     </div>
   );
@@ -173,11 +192,54 @@ const grid = {
   display: "grid",
   gridTemplateColumns: "repeat(2, 1fr)",
   gap: "16px",
-  marginBottom: "20px",
 };
 
 const sectionTitle = {
   margin: "20px 0 10px",
+};
+
+const table = {
+  width: "100%",
+  borderCollapse: "collapse" as const,
+};
+
+const th = {
+  borderBottom: "1px solid #000",
+  padding: "8px",
+};
+
+const td = {
+  borderBottom: "1px solid #ddd",
+  padding: "8px",
+};
+
+const footer = {
+  marginTop: "30px",
+};
+
+const actionBar = {
+  marginTop: "20px",
+  display: "flex",
+  justifyContent: "center",
+  gap: "12px",
+};
+
+const primaryBtn = {
+  background: "#198754",
+  color: "#fff",
+  border: "none",
+  padding: "10px 18px",
+  borderRadius: "6px",
+  cursor: "pointer",
+};
+
+const outlineBtn = {
+  background: "#fff",
+  border: "1px solid #198754",
+  color: "#198754",
+  padding: "10px 18px",
+  borderRadius: "6px",
+  cursor: "pointer",
 };
 
 const labelStyle = {
@@ -188,39 +250,6 @@ const labelStyle = {
 const valueStyle = {
   fontSize: "15px",
   fontWeight: 500,
-};
-
-const table = {
-  width: "100%",
-  borderCollapse: "collapse" as const,
-  marginTop: "10px",
-};
-
-const th = {
-  borderBottom: "1px solid #000",
-  padding: "8px",
-  textAlign: "left" as const,
-};
-
-const td = {
-  borderBottom: "1px solid #ddd",
-  padding: "8px",
-};
-
-const footer = {
-  marginTop: "30px",
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-};
-
-const printBtn = {
-  background: "#198754",
-  color: "#fff",
-  border: "none",
-  padding: "10px 18px",
-  borderRadius: "6px",
-  cursor: "pointer",
 };
 
 const muted = {
