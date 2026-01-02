@@ -2,34 +2,28 @@ const express = require("express");
 const router = express.Router();
 
 /**
- * TEMP in-memory doctors list
+ * TEMP in-memory doctors
  * (later you can connect DB)
  */
 let doctors = [];
 
-/**
- * GET all doctors
- * GET /api/doctors
- */
+// GET all doctors
 router.get("/", (_req, res) => {
   res.json(doctors);
 });
 
-/**
- * ADD doctor
- * POST /api/doctors
- * body: { name }
- */
+// ADD doctor
 router.post("/", (req, res) => {
-  const { name } = req.body;
+  const { name, phone } = req.body;
 
   if (!name) {
-    return res.status(400).json({ error: "Doctor name is required" });
+    return res.status(400).json({ error: "Doctor name required" });
   }
 
   const doctor = {
     id: Date.now(),
     name,
+    phone: phone || null,
   };
 
   doctors.push(doctor);
