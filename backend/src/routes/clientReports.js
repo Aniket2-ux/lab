@@ -1,29 +1,53 @@
+const express = require("express");
+const router = express.Router(); // ✅ THIS WAS MISSING
+
 const PDFDocument = require("pdfkit");
+const { ClientReport, Client } = require("../models");
 
+/**
+ * GET /api/client-reports/:id/pdf
+ * Download client report as PDF
+ */
 router.get("/:id/pdf", async (req, res) => {
-  const report = await ClientReport.findByPk(req.params.id);
-  if (!report) return res.sendStatus(404);
+  try {
+    const report = await ClientReport.findByPk(req.params.id, {
+      include: [{ model: Client }]
+    });
 
-  const doc = new PDFDocument({ margin: 40 });
-  res.setHeader("Content-Type", "application/pdf");
-  res.setHeader(
-    "Content-Disposition",
-    `attachment; filename=report-${report.reportCode}.pdf`
-  );
+    if (!report) {
+      return res.status(404).json({ error: "Report not found" });
+    }
 
-  doc.pipe(res);
+    const doc = new PDFDocument({ size: "A4", margin: 50 });
 
-  doc.fontSize(18).text("GM Diagnostic Lab", { align: "center" });
-  doc.moveDown();
-  doc.fontSize(12).text(`Patient: ${report.clientName}`);
-  doc.text(`Doctor: ${report.doctorName}`);
-  doc.text(`Test: ${report.testName}`);
-  doc.text(`Date: ${new Date(report.createdAt).toDateString()}`);
-  doc.moveDown();
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `inline; filename=report-${report.id}.pdf`
+    );
 
-  report.parameters.forEach((p) => {
-    doc.text(`${p.name}: ${p.result} ${p.unit} (Normal: ${p.range})`);
-  });
+    doc.pipe(res);
 
-  doc.end();
+    // -------- PDF CONTENT --------
+    doc.fontSize(18).text("GM Diagnostic Lab", { align: "center" });
+    doc.moveDown();
+
+    doc.fontSize(12);
+    doc.text(`Patient Name: ${report.Client?.fullName || "N/A"}`);
+    doc.text(`Age: ${report.age || "-"}`);
+    doc.text(`Gender: ${report.gender || "-"}`);
+    doc.text(`Report Date: ${new Date(report.createdAt).toDateString()}`);
+    doc.moveDown();
+
+    doc.text("Report Details:");
+    doc.moveDown();
+    doc.text(report.reportText || "No report content");
+
+    doc.end();
+  } catch (err) {
+    console.error("PDF error:", err);
+    res.status(500).json({ error: "Failed to generate PDF" });
+  }
 });
+
+module.exports = router; // ✅ REQUIRED
