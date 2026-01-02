@@ -1,49 +1,51 @@
 const express = require("express");
 const router = express.Router();
-const { ClientReport } = require("../models");
 
-/**
- * CREATE REPORT
- */
-router.post("/", async (req, res) => {
-  try {
-    const report = await ClientReport.create(req.body);
-    res.json(report);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Failed to save report" });
-  }
+/* ---------------- In-memory fallback (safe) ---------------- */
+/* This prevents crashes even if DB model is missing */
+let reports = [];
+
+/* ---------------- GET all reports ---------------- */
+router.get("/", (req, res) => {
+  res.json(reports);
 });
 
-/**
- * LIST REPORTS (for internal page)
- */
-router.get("/", async (_req, res) => {
-  try {
-    const reports = await ClientReport.findAll({
-      order: [["createdAt", "DESC"]],
-    });
-    res.json(reports);
-  } catch (err) {
-    res.status(500).json({ error: "Failed to load reports" });
+/* ---------------- CREATE report ---------------- */
+router.post("/", (req, res) => {
+  const { patientName, age, gender, doctorName, password, reportCode } =
+    req.body;
+
+  if (!patientName || !age || !gender || !doctorName || !password || !reportCode) {
+    return res.status(400).json({ message: "Missing fields" });
   }
+
+  const newReport = {
+    id: Date.now(),
+    patientName,
+    age,
+    gender,
+    doctorName,
+    password,
+    reportCode,
+  };
+
+  reports.unshift(newReport);
+  res.json(newReport);
 });
 
-/**
- * PATIENT ACCESS
- */
-router.post("/access", async (req, res) => {
+/* ---------------- VERIFY report (for client access page) ---------------- */
+router.post("/verify", (req, res) => {
   const { reportCode, password } = req.body;
 
-  const report = await ClientReport.findOne({
-    where: { reportCode, password },
-  });
+  const report = reports.find(
+    (r) => r.reportCode === reportCode && r.password === password
+  );
 
   if (!report) {
-    return res.status(401).json({ error: "Invalid credentials" });
+    return res.status(401).send("Invalid report code or password");
   }
 
-  res.json(report);
+  res.json({ id: report.id });
 });
 
 module.exports = router;
