@@ -1,160 +1,154 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
-/* ---------------- Tabs ---------------- */
-
-const TABS = [
-  "ADMINISTRATIVE USER",
-  "SERVICE PROVIDERS",
-  "ALL",
-  "BOOKABLE RESOURCE",
-];
+type TabKey = "admin" | "service" | "all" | "bookable";
 
 export default function UsersTabs() {
-  const [activeTab, setActiveTab] = useState(TABS[0]);
-  const [openDrawer, setOpenDrawer] = useState(false);
+  const [activeTab, setActiveTab] = useState<TabKey>("admin");
+  const router = useRouter();
 
   return (
-    <>
-      {/* Tabs Header */}
-      <div style={tabsHeader}>
-        {TABS.map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            style={{
-              ...tabBtn,
-              ...(activeTab === tab ? activeTabBtn : {}),
-            }}
-          >
-            {tab}
-          </button>
-        ))}
+    <div>
+      {/* ---------- TAB HEADER ---------- */}
+      <div style={tabsBar}>
+        <TabButton
+          label="ADMINISTRATIVE USER"
+          active={activeTab === "admin"}
+          onClick={() => setActiveTab("admin")}
+        />
+        <TabButton
+          label="SERVICE PROVIDERS"
+          active={activeTab === "service"}
+          onClick={() => setActiveTab("service")}
+        />
+        <TabButton
+          label="ALL"
+          active={activeTab === "all"}
+          onClick={() => setActiveTab("all")}
+        />
+        <TabButton
+          label="BOOKABLE RESOURCE"
+          active={activeTab === "bookable"}
+          onClick={() => setActiveTab("bookable")}
+        />
       </div>
 
-      {/* Toolbar */}
-      <div style={toolbar}>
-        <input placeholder="Search" style={search} />
+      {/* ---------- TAB CONTENT ---------- */}
+      <div style={{ marginTop: 24 }}>
+        {activeTab === "admin" && (
+          <Section
+            title="Employees (0)"
+            buttonLabel="ADMINISTRATIVE USER"
+            onCreate={() => router.push("/settings/users/employees/create")}
+          />
+        )}
 
-        {activeTab !== "ALL" && (
-          <button style={createBtn} onClick={() => setOpenDrawer(true)}>
-            {activeTab === "SERVICE PROVIDERS"
-              ? "CREATE SERVICE PROVIDER"
-              : "ADMINISTRATIVE USER"}
+        {activeTab === "service" && (
+          <Section
+            title="Service Providers (0)"
+            buttonLabel="CREATE SERVICE PROVIDER"
+            onCreate={() =>
+              router.push("/settings/users/service-providers/create")
+            }
+          />
+        )}
+
+        {activeTab === "all" && (
+          <Section title="All Active Users (0)" />
+        )}
+
+        {activeTab === "bookable" && (
+          <Section title="Bookable Resources (0)" />
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ---------- COMPONENTS ---------- */
+
+function TabButton({
+  label,
+  active,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        ...tabBtn,
+        borderBottom: active ? "3px solid #198754" : "3px solid transparent",
+        color: active ? "#198754" : "#555",
+        fontWeight: active ? 600 : 500,
+      }}
+    >
+      {label}
+    </button>
+  );
+}
+
+function Section({
+  title,
+  buttonLabel,
+  onCreate,
+}: {
+  title: string;
+  buttonLabel?: string;
+  onCreate?: () => void;
+}) {
+  return (
+    <div style={card}>
+      <div style={cardHeader}>
+        <h3 style={{ margin: 0 }}>{title}</h3>
+        {buttonLabel && onCreate && (
+          <button style={createBtn} onClick={onCreate}>
+            {buttonLabel}
           </button>
         )}
       </div>
 
-      {/* Table */}
-      <div style={tableWrap}>
-        <table style={table}>
-          <thead>
-            <tr>
-              <th>Name</th>
-              {activeTab === "SERVICE PROVIDERS" && <th>Speciality</th>}
-              <th>Phone</th>
-              <th>Email</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td colSpan={4} style={empty}>
-                No records found
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      {/* Drawer */}
-      {openDrawer && (
-        <Drawer title={activeTab} onClose={() => setOpenDrawer(false)} />
-      )}
-    </>
-  );
-}
-
-/* ---------------- Drawer ---------------- */
-
-function Drawer({
-  title,
-  onClose,
-}: {
-  title: string;
-  onClose: () => void;
-}) {
-  return (
-    <div style={drawerOverlay}>
-      <div style={drawer}>
-        <div style={drawerHeader}>
-          <h3>Create {title}</h3>
-          <button onClick={onClose}>✕</button>
-        </div>
-
-        <div style={formGrid}>
-          <Input label="First Name" />
-          <Input label="Last Name" />
-          <Input label="Mobile Number" />
-          <Input label="Email" />
-          <Input label="Department" />
-          <Input label="User Group" />
-        </div>
-
-        <div style={drawerFooter}>
-          <button onClick={onClose} style={cancelBtn}>
-            Cancel
-          </button>
-          <button style={saveBtn}>Create</button>
-        </div>
+      {/* EMPTY STATE */}
+      <div style={emptyState}>
+        No records found.
       </div>
     </div>
   );
 }
 
-/* ---------------- Components ---------------- */
+/* ---------- STYLES ---------- */
 
-function Input({ label }: { label: string }) {
-  return (
-    <div>
-      <label style={labelStyle}>{label}</label>
-      <input style={input} />
-    </div>
-  );
-}
-
-/* ---------------- Styles ---------------- */
-
-const tabsHeader = {
+const tabsBar = {
   display: "flex",
-  borderBottom: "1px solid #e0e0e0",
-  marginBottom: 16,
+  gap: 32,
+  borderBottom: "1px solid #ddd",
 };
 
 const tabBtn = {
-  padding: "10px 16px",
   background: "none",
   border: "none",
+  padding: "12px 4px",
   cursor: "pointer",
-  fontWeight: 500,
+  fontSize: 14,
 };
 
-const activeTabBtn = {
-  borderBottom: "2px solid #198754",
-  color: "#198754",
+const card = {
+  background: "#fff",
+  borderRadius: 8,
+  boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+  padding: 20,
 };
 
-const toolbar = {
+const cardHeader = {
   display: "flex",
   justifyContent: "space-between",
+  alignItems: "center",
   marginBottom: 16,
-};
-
-const search = {
-  padding: 8,
-  width: 240,
-  borderRadius: 6,
-  border: "1px solid #ccc",
 };
 
 const createBtn = {
@@ -164,81 +158,11 @@ const createBtn = {
   padding: "8px 14px",
   borderRadius: 6,
   cursor: "pointer",
+  fontSize: 13,
 };
 
-const tableWrap = {
-  background: "#fff",
-  borderRadius: 8,
-  boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-};
-
-const table = {
-  width: "100%",
-  borderCollapse: "collapse" as const,
-};
-
-const empty = {
-  padding: 24,
+const emptyState = {
+  padding: "32px",
   textAlign: "center" as const,
-  color: "#777",
-};
-
-const drawerOverlay = {
-  position: "fixed" as const,
-  inset: 0,
-  background: "rgba(0,0,0,0.4)",
-  display: "flex",
-  justifyContent: "flex-end",
-};
-
-const drawer = {
-  width: 420,
-  background: "#fff",
-  height: "100%",
-  padding: 20,
-};
-
-const drawerHeader = {
-  display: "flex",
-  justifyContent: "space-between",
-  marginBottom: 16,
-};
-
-const formGrid = {
-  display: "grid",
-  gap: 12,
-};
-
-const drawerFooter = {
-  display: "flex",
-  justifyContent: "flex-end",
-  gap: 12,
-  marginTop: 20,
-};
-
-const input = {
-  width: "100%",
-  padding: 8,
-  borderRadius: 6,
-  border: "1px solid #ccc",
-};
-
-const labelStyle = {
-  fontSize: 12,
-  color: "#666",
-};
-
-const cancelBtn = {
-  background: "#eee",
-  border: "none",
-  padding: "8px 14px",
-  borderRadius: 6,
-};
-
-const saveBtn = {
-  background: "#198754",
-  color: "#fff",
-  border: "none",
-  padding: "8px 14px",
-  borderRadius: 6,
+  color: "#888",
 };
