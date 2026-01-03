@@ -1,10 +1,10 @@
-export default function AdministrativeUsersPage() {
+export default function ServiceProvidersPage() {
   return (
     <div style={card}>
-      <h3>Employees (0)</h3>
-      <p style={{ color: "#777" }}>No administrative users found.</p>
+      <h3>Service Providers (0)</h3>
+      <p style={{ color: "#777" }}>No service providers found.</p>
 
-      <button style={primaryBtn}>CREATE EMPLOYEE</button>
+      <button style={primaryBtn}>CREATE SERVICE PROVIDER</button>
     </div>
   );
 }
