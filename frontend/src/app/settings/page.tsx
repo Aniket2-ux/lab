@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { API_BASE } from "@/lib/apiBase";
 
-/* -------- Types -------- */
 type Profile = {
   shortName?: string;
   name?: string;
@@ -13,7 +12,6 @@ type Profile = {
   ownerEmail?: string;
 };
 
-/* -------- Page -------- */
 export default function SettingsPage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -42,13 +40,13 @@ export default function SettingsPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
     });
+
     setEditOpen(false);
     loadProfile();
   }
 
   return (
     <>
-      {/* CONTENT CARD */}
       <div
         style={{
           background: "#fff",
@@ -57,21 +55,12 @@ export default function SettingsPage() {
           maxWidth: 900,
         }}
       >
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: 20,
-          }}
-        >
+        <div style={headerRow}>
           <h2 style={{ margin: 0 }}>GM Diagnostic Lab</h2>
-          <button
-            onClick={() => {
-              setForm(profile || {});
-              setEditOpen(true);
-            }}
-          >
+          <button onClick={() => {
+            setForm(profile || {});
+            setEditOpen(true);
+          }}>
             Edit
           </button>
         </div>
@@ -79,13 +68,7 @@ export default function SettingsPage() {
         {loading ? (
           <div>Loading...</div>
         ) : (
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: 16,
-            }}
-          >
+          <div style={grid}>
             <Field label="Short Name" value={profile?.shortName} />
             <Field label="Company Name" value={profile?.name} />
             <Field label="City" value={profile?.city} />
@@ -96,43 +79,21 @@ export default function SettingsPage() {
         )}
       </div>
 
-      {/* EDIT DRAWER */}
       {editOpen && (
-        <div
-          style={{
-            position: "fixed",
-            right: 0,
-            top: 0,
-            bottom: 0,
-            width: 420,
-            background: "#fff",
-            padding: 24,
-            boxShadow: "-10px 0 30px rgba(0,0,0,0.15)",
-            zIndex: 50,
-          }}
-        >
+        <div style={drawer}>
           <h3>Edit Company Profile</h3>
 
-          <Input
-            label="Short Name"
-            value={form.shortName}
-            onChange={(v) => setForm({ ...form, shortName: v })}
-          />
-          <Input
-            label="Company Name"
-            value={form.name}
-            onChange={(v) => setForm({ ...form, name: v })}
-          />
-          <Input
-            label="City"
-            value={form.city}
-            onChange={(v) => setForm({ ...form, city: v })}
-          />
-          <Input
-            label="Email"
-            value={form.email}
-            onChange={(v) => setForm({ ...form, email: v })}
-          />
+          <Input label="Short Name" value={form.shortName}
+            onChange={(v) => setForm({ ...form, shortName: v })} />
+
+          <Input label="Company Name" value={form.name}
+            onChange={(v) => setForm({ ...form, name: v })} />
+
+          <Input label="City" value={form.city}
+            onChange={(v) => setForm({ ...form, city: v })} />
+
+          <Input label="Email" value={form.email}
+            onChange={(v) => setForm({ ...form, email: v })} />
 
           <div style={{ marginTop: 20 }}>
             <button onClick={saveProfile}>Save</button>
@@ -146,7 +107,7 @@ export default function SettingsPage() {
   );
 }
 
-/* -------- Helpers -------- */
+/* ---------- helpers ---------- */
 
 function Field({ label, value }: { label: string; value?: string }) {
   return (
@@ -168,7 +129,7 @@ function Input({
 }) {
   return (
     <div style={{ marginTop: 12 }}>
-      <div style={{ fontSize: 12, marginBottom: 4 }}>{label}</div>
+      <div style={{ fontSize: 12 }}>{label}</div>
       <input
         value={value || ""}
         onChange={(e) => onChange(e.target.value)}
@@ -177,3 +138,29 @@ function Input({
     </div>
   );
 }
+
+/* ---------- styles ---------- */
+
+const headerRow = {
+  display: "flex",
+  justifyContent: "space-between",
+  marginBottom: 20,
+};
+
+const grid = {
+  display: "grid",
+  gridTemplateColumns: "1fr 1fr",
+  gap: 16,
+};
+
+const drawer = {
+  position: "fixed" as const,
+  right: 0,
+  top: 0,
+  bottom: 0,
+  width: 420,
+  background: "#fff",
+  padding: 24,
+  boxShadow: "-10px 0 30px rgba(0,0,0,0.15)",
+  zIndex: 50,
+};
