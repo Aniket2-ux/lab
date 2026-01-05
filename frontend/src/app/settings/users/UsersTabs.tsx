@@ -42,8 +42,6 @@ export default function UsersTabs() {
   );
 }
 
-/* ---------- styles ---------- */
-
 const tabsWrap = {
   display: "flex",
   gap: 24,

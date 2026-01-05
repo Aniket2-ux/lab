@@ -1,17 +1,16 @@
 "use client";
 
+import type { ReactNode } from "react";
 import UsersTabs from "./UsersTabs";
 
-export default function UsersLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function UsersLayout({ children }: { children: ReactNode }) {
   return (
-    <div style={{ padding: 24 }}>
-      <h2 style={{ marginBottom: 16 }}>Users</h2>
+    <div>
       <UsersTabs />
-      <div style={{ marginTop: 24 }}>{children}</div>
+
+      <div style={{ marginTop: 20 }}>
+        {children}
+      </div>
     </div>
   );
 }

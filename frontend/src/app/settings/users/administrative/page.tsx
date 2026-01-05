@@ -1,10 +1,16 @@
+"use client";
+
 export default function AdministrativeUsersPage() {
   return (
     <div style={card}>
       <h3>Employees (0)</h3>
-      <p style={{ color: "#777" }}>No administrative users found.</p>
+      <p style={{ color: "#777" }}>
+        No administrative users found.
+      </p>
 
-      <button style={primaryBtn}>CREATE EMPLOYEE</button>
+      <button style={primaryBtn}>
+        CREATE EMPLOYEE
+      </button>
     </div>
   );
 }
