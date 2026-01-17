@@ -1,8 +1,8 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../db");
 
-const ReportItem = sequelize.define(
-  "ReportItem",
+const TestParameter = sequelize.define(
+  "TestParameter",
   {
     id: {
       type: DataTypes.INTEGER,
@@ -10,28 +10,25 @@ const ReportItem = sequelize.define(
       primaryKey: true,
     },
 
-    parameterName: {
+    name: {
       type: DataTypes.STRING,
       allowNull: false,
     },
 
-    value: {
+    unit: {
       type: DataTypes.STRING,
       allowNull: true,
     },
 
-    unit: {
-      type: DataTypes.STRING,
-    },
-
     normalRange: {
       type: DataTypes.STRING,
+      allowNull: true,
     },
   },
   {
-    tableName: "report_items",
-    timestamps: false,
+    tableName: "test_parameters",
+    timestamps: true,
   }
 );
 
-module.exports = ReportItem;
+module.exports = TestParameter;

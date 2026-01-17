@@ -82,6 +82,8 @@ app.use("/api/lab-tests", labTestsRoutes);
 app.use("/api/client-reports", require("./routes/clientReports"));
 app.use("/uploads", express.static("uploads"));
 app.use("/api/doctors", require("./routes/doctors"));
+app.use("/api/vendors/supplier", require("./routes/vendors/supplier"));
+
 
 
 
