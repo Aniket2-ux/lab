@@ -1,24 +1,52 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import Button from "@/components/ui/Button";
 
 export default function SupplierPage() {
   const router = useRouter();
 
   return (
-    <div className="bg-white rounded-lg p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold">Suppliers</h2>
+    <>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: 20,
+        }}
+      >
+        <h2 style={{ fontSize: 20, fontWeight: 600 }}>Suppliers</h2>
 
-        <Button onClick={() => router.push("/settings/vendors/supplier/create")}>
+        <button
+          onClick={() =>
+            router.push("/settings/vendors/supplier/create")
+          }
+          style={greenButton}
+        >
           CREATE SUPPLIER
-        </Button>
+        </button>
       </div>
 
-      <div className="text-sm text-gray-500">
+      <div
+        style={{
+          background: "#f9fafb",
+          borderRadius: 8,
+          padding: 32,
+          color: "#6b7280",
+        }}
+      >
         No suppliers found.
       </div>
-    </div>
+    </>
   );
 }
+
+const greenButton = {
+  background: "#16a34a",
+  color: "#fff",
+  padding: "10px 16px",
+  borderRadius: 6,
+  border: "none",
+  fontWeight: 600,
+  cursor: "pointer",
+};
