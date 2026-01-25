@@ -1,47 +1,74 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import VendorTabs from "../_tabs";
-import { box, header, input, button, table, th, td } from "../_styles";
 
 export default function AssociateCompaniesPage() {
   const router = useRouter();
 
   return (
-    <div style={box}>
-      <VendorTabs />
-
+    <div style={container}>
       <div style={header}>
         <h2>Associate Companies</h2>
-        <div style={{ display: "flex", gap: 12 }}>
-          <input placeholder="Search" style={input} />
-          <button
-            style={button}
-            onClick={() =>
-              router.push("/settings/vendors/associate-companies/create")
-            }
-          >
-            CREATE COMPANY
-          </button>
-        </div>
+
+        {/* ✅ CREATE COMPANY BUTTON */}
+        <button
+          style={createBtn}
+          onClick={() =>
+            router.push(
+              "/settings/vendors/associate-companies/@drawer/create"
+            )
+          }
+        >
+          CREATE COMPANY
+        </button>
       </div>
 
       <table style={table}>
         <thead>
           <tr>
-            <th style={th}>CREATED DATE</th>
-            <th style={th}>COMPANY NAME</th>
-            <th style={th}>DISCOUNT RATE</th>
+            <th>CREATED DATE</th>
+            <th>COMPANY NAME</th>
+            <th>DISCOUNT RATE</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td colSpan={3} style={td}>
-              No associate companies found
-            </td>
+            <td>2026-01-19</td>
+            <td>GM DIAGNOSTIC LAB KALAIYA BRANCH</td>
+            <td>70</td>
           </tr>
         </tbody>
       </table>
     </div>
   );
 }
+
+/* ---------------- styles ---------------- */
+
+const container = {
+  background: "#fff",
+  padding: 24,
+  borderRadius: 12,
+};
+
+const header = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  marginBottom: 20,
+};
+
+const createBtn = {
+  background: "#16a34a",
+  color: "#fff",
+  border: "none",
+  padding: "10px 18px",
+  borderRadius: 8,
+  fontWeight: 600,
+  cursor: "pointer",
+};
+
+const table = {
+  width: "100%",
+  borderCollapse: "collapse" as const,
+};
