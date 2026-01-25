@@ -1,42 +1,31 @@
 "use client";
 
-export default function Button({
-  label,
-  onClick,
-  variant = "primary",
-  disabled,
-}: {
-  label: string;
-  onClick?: () => void;
-  variant?: "primary" | "secondary";
-  disabled?: boolean;
-}) {
-  const styles =
-    variant === "primary"
-      ? {
-          background: "#16a34a",
-          color: "#fff",
-        }
-      : {
-          background: "transparent",
-          color: "#16a34a",
-        };
+import clsx from "clsx";
 
+type Props = {
+  children: React.ReactNode;
+  variant?: "primary" | "outline";
+  onClick?: () => void;
+  type?: "button" | "submit";
+};
+
+export default function Button({
+  children,
+  variant = "primary",
+  ...props
+}: Props) {
   return (
     <button
-      disabled={disabled}
-      onClick={onClick}
-      style={{
-        ...styles,
-        padding: "8px 18px",
-        borderRadius: 6,
-        border: variant === "secondary" ? "1px solid #16a34a" : "none",
-        fontWeight: 600,
-        cursor: "pointer",
-        opacity: disabled ? 0.6 : 1,
-      }}
+      {...props}
+      className={clsx(
+        "px-5 py-2 rounded-md text-sm font-medium",
+        variant === "primary" &&
+          "bg-green-600 text-white hover:bg-green-700",
+        variant === "outline" &&
+          "border border-green-600 text-green-600 hover:bg-green-50"
+      )}
     >
-      {label}
+      {children}
     </button>
   );
 }

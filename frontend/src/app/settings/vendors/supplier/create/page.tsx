@@ -3,39 +3,32 @@
 import { useRouter } from "next/navigation";
 import Button from "@/components/ui/Button";
 
-export default function CreateSupplier() {
+export default function CreateSupplierPage() {
   const router = useRouter();
 
   return (
-    <div style={drawer}>
-      <h3>Create Supplier</h3>
+    <div className="fixed inset-0 flex justify-end bg-black/20">
+      <div className="w-[420px] bg-white h-full p-6 overflow-y-auto">
+        <h2 className="text-lg font-semibold mb-4">Create Supplier</h2>
 
-      <input placeholder="Supplier Name" style={input} />
-      <input placeholder="Address" style={input} />
-      <input placeholder="Email" style={input} />
-      <input placeholder="Phone" style={input} />
+        <div className="space-y-3">
+          <input className="input" placeholder="Supplier Name" />
+          <input className="input" placeholder="Address" />
+          <input className="input" placeholder="Email" />
+          <input className="input" placeholder="Phone" />
+        </div>
 
-      <div style={{ marginTop: 20, display: "flex", gap: 10 }}>
-        <Button label="CANCEL" variant="secondary" onClick={() => router.back()} />
-        <Button label="CREATE" />
+        <div className="flex justify-end gap-3 mt-6">
+          <Button
+            variant="outline"
+            onClick={() => router.back()}
+          >
+            CANCEL
+          </Button>
+
+          <Button>CREATE</Button>
+        </div>
       </div>
     </div>
   );
 }
-
-const drawer = {
-  position: "fixed" as const,
-  right: 0,
-  top: 0,
-  bottom: 0,
-  width: 460,
-  background: "#fff",
-  padding: 24,
-  boxShadow: "-10px 0 30px rgba(0,0,0,0.15)",
-};
-
-const input = {
-  width: "100%",
-  padding: 10,
-  marginTop: 12,
-};
