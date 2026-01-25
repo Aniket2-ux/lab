@@ -14,9 +14,7 @@ export default function AssociateCompaniesPage() {
         <button
           style={createBtn}
           onClick={() =>
-            router.push(
-              "/settings/vendors/associate-companies/@drawer/create"
-            )
+            router.push("/settings/vendors/associate-companies/create")
           }
         >
           CREATE COMPANY
@@ -43,7 +41,7 @@ export default function AssociateCompaniesPage() {
   );
 }
 
-/* ---------------- styles ---------------- */
+/* ---------- styles ---------- */
 
 const container = {
   background: "#fff",
