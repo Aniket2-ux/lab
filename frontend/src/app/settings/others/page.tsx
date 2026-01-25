@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Button from "@/components/ui/Button";
 
 const tabs = [
   { key: "general", label: "GENERAL PRINT" },
@@ -16,14 +17,7 @@ export default function OthersSettingsPage() {
   const [active, setActive] = useState("general");
 
   return (
-    <div
-      style={{
-        background: "#fff",
-        borderRadius: 10,
-        padding: 24,
-        maxWidth: 1000,
-      }}
-    >
+    <div style={card}>
       {/* Tabs */}
       <div style={tabRow}>
         {tabs.map((t) => (
@@ -53,19 +47,15 @@ export default function OthersSettingsPage() {
   );
 }
 
-/* -------- TAB CONTENT -------- */
-
 function GeneralPrint() {
   return (
-    <div style={{ maxWidth: 500 }}>
+    <div style={{ maxWidth: 520 }}>
       <label style={row}>
-        <input type="checkbox" defaultChecked />
-        Centralized Header
+        <input type="checkbox" defaultChecked /> Centralized Header
       </label>
 
       <label style={row}>
-        <input type="checkbox" defaultChecked />
-        Enable letterhead color
+        <input type="checkbox" defaultChecked /> Enable letterhead color
       </label>
 
       <input placeholder="Hex value" style={input} />
@@ -76,11 +66,20 @@ function GeneralPrint() {
         </div>
         <input type="number" step="0.1" defaultValue={1.8} style={input} />
       </div>
+
+      <div style={{ marginTop: 24, display: "flex", gap: 10 }}>
+        <Button label="SAVE" />
+      </div>
     </div>
   );
 }
 
-/* -------- STYLES -------- */
+const card = {
+  background: "#fff",
+  borderRadius: 10,
+  padding: 24,
+  maxWidth: 1100,
+};
 
 const tabRow = {
   display: "flex",
@@ -92,7 +91,7 @@ const tab = {
   paddingBottom: 8,
   cursor: "pointer",
   fontSize: 13,
-  fontWeight: 500,
+  fontWeight: 600,
 };
 
 const row = {
@@ -102,7 +101,7 @@ const row = {
 };
 
 const input = {
-  width: 200,
+  width: 220,
   padding: 8,
   marginTop: 10,
 };

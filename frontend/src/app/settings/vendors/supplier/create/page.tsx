@@ -1,63 +1,41 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { drawer, input, button } from "../../_styles";
+import Button from "@/components/ui/Button";
 
-export default function CreateSupplierPage() {
+export default function CreateSupplier() {
   const router = useRouter();
 
   return (
     <div style={drawer}>
-      <h2>Create Supplier</h2>
+      <h3>Create Supplier</h3>
 
-      <Input label="Supplier Name*" />
-      <Input label="Address" />
-      <Input label="Email" />
-      <Input label="Phone" prefix="+977" />
-      <Input label="Landline" />
-      <Input label="PAN No." />
-      <Textarea label="Details" />
+      <input placeholder="Supplier Name" style={input} />
+      <input placeholder="Address" style={input} />
+      <input placeholder="Email" style={input} />
+      <input placeholder="Phone" style={input} />
 
-      <h4 style={{ marginTop: 24 }}>Account Information</h4>
-      <Input label="Opening Balance" defaultValue="0" />
-      <Input label="Type" defaultValue="Credit" />
-      <Input label="Opening Balance Date" />
-
-      <h4 style={{ marginTop: 24 }}>Bank Information</h4>
-      <Input label="Name of Beneficiary" />
-      <Input label="Bank Name" />
-      <Input label="Bank Branch" />
-      <Input label="Bank Account Number" />
-      <Input label="Account Type" />
-      <Input label="IFSC Code" />
-      <Input label="Swift Code" />
-
-      <div style={{ marginTop: 30, display: "flex", gap: 12 }}>
-        <button onClick={() => router.back()}>CANCEL</button>
-        <button style={button}>CREATE</button>
+      <div style={{ marginTop: 20, display: "flex", gap: 10 }}>
+        <Button label="CANCEL" variant="secondary" onClick={() => router.back()} />
+        <Button label="CREATE" />
       </div>
     </div>
   );
 }
 
-/* helpers */
-function Input({ label, prefix, defaultValue }: any) {
-  return (
-    <div style={{ marginTop: 12 }}>
-      <div style={{ fontSize: 12 }}>{label}</div>
-      <div style={{ display: "flex", gap: 6 }}>
-        {prefix && <span>{prefix}</span>}
-        <input defaultValue={defaultValue} style={{ ...input, width: "100%" }} />
-      </div>
-    </div>
-  );
-}
+const drawer = {
+  position: "fixed" as const,
+  right: 0,
+  top: 0,
+  bottom: 0,
+  width: 460,
+  background: "#fff",
+  padding: 24,
+  boxShadow: "-10px 0 30px rgba(0,0,0,0.15)",
+};
 
-function Textarea({ label }: any) {
-  return (
-    <div style={{ marginTop: 12 }}>
-      <div style={{ fontSize: 12 }}>{label}</div>
-      <textarea style={{ width: "100%", height: 80, padding: 8 }} />
-    </div>
-  );
-}
+const input = {
+  width: "100%",
+  padding: 10,
+  marginTop: 12,
+};
