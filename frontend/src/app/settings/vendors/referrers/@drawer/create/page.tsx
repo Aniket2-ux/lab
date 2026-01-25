@@ -14,7 +14,7 @@ export default function CreateReferrerDrawer() {
           <button onClick={() => router.back()} style={closeBtn}>✕</button>
         </div>
 
-        {/* Form */}
+        {/* Body */}
         <div style={body}>
           <Input label="Name*" />
           <Input label="Email" />
@@ -28,7 +28,6 @@ export default function CreateReferrerDrawer() {
 
           <Divider />
 
-          {/* Pricing Section */}
           <div style={priceBox}>
             <h4 style={sectionTitle}>
               Assign Referrer Specific Prices To Products And Services
@@ -46,11 +45,11 @@ export default function CreateReferrerDrawer() {
               </select>
 
               <input style={inputStyle} placeholder="Custom Price" />
-              <span style={{ paddingTop: 10 }}>Rs -</span>
+              <span>Rs -</span>
               <button style={removeBtn}>✕</button>
             </div>
 
-            <button style={addPriceBtn}>
+            <button style={addBtn}>
               Add Product Or Service Price
             </button>
           </div>
@@ -68,13 +67,12 @@ export default function CreateReferrerDrawer() {
   );
 }
 
-/* ---------- Components ---------- */
+/* ---------- Small Components ---------- */
 
 function Input({ label, prefix }: any) {
   return (
     <div style={{ marginBottom: 14 }}>
       <label style={labelStyle}>{label}</label>
-
       <div style={{ display: "flex" }}>
         {prefix && <span style={prefixStyle}>{prefix}</span>}
         <input style={inputStyle} />
@@ -93,7 +91,6 @@ const overlay = {
   position: "fixed" as const,
   inset: 0,
   background: "rgba(0,0,0,0.35)",
-  backdropFilter: "blur(2px)",
   display: "flex",
   justifyContent: "flex-end",
   zIndex: 50,
@@ -152,7 +149,6 @@ const inputStyle = {
 
 const labelStyle = {
   fontSize: 12,
-  color: "#374151",
   marginBottom: 6,
   display: "block",
 };
@@ -199,14 +195,39 @@ const priceRow = {
   alignItems: "center",
 };
 
-const addPriceBtn = {
+const addBtn = {
   marginTop: 12,
-  fontSize: 13,
-  color: "#16a34a",
   background: "transparent",
   border: "none",
+  color: "#16a34a",
   cursor: "pointer",
 };
 
 const removeBtn = {
-  background: "transparent
+  background: "transparent",
+  border: "none",
+  fontSize: 16,
+  cursor: "pointer",
+};
+
+const cancelBtn = {
+  padding: "10px 18px",
+  border: "1px solid #16a34a",
+  color: "#16a34a",
+  borderRadius: 8,
+  background: "#fff",
+};
+
+const saveBtn = {
+  padding: "10px 18px",
+  background: "#16a34a",
+  color: "#fff",
+  borderRadius: 8,
+};
+
+const closeBtn = {
+  fontSize: 18,
+  background: "transparent",
+  border: "none",
+  cursor: "pointer",
+};
