@@ -1,52 +1,29 @@
-"use client";
-
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function SupplierPage() {
-  const router = useRouter();
-
   return (
-    <>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 20,
-        }}
-      >
-        <h2 style={{ fontSize: 20, fontWeight: 600 }}>Suppliers</h2>
+    <div style={{ background: "#fff", padding: 24, borderRadius: 8 }}>
+      <div style={{ display: "flex", justifyContent: "space-between" }}>
+        <h2>Suppliers</h2>
 
-        <button
-          onClick={() =>
-            router.push("/settings/vendors/supplier/create")
-          }
-          style={greenButton}
-        >
-          CREATE SUPPLIER
-        </button>
+        <Link href="/settings/vendors/supplier/create">
+          <button
+            style={{
+              background: "#16a34a",
+              color: "#fff",
+              padding: "10px 16px",
+              borderRadius: 6,
+              fontWeight: 600,
+            }}
+          >
+            CREATE SUPPLIER
+          </button>
+        </Link>
       </div>
 
-      <div
-        style={{
-          background: "#f9fafb",
-          borderRadius: 8,
-          padding: 32,
-          color: "#6b7280",
-        }}
-      >
+      <div style={{ marginTop: 24, color: "#666" }}>
         No suppliers found.
       </div>
-    </>
+    </div>
   );
 }
-
-const greenButton = {
-  background: "#16a34a",
-  color: "#fff",
-  padding: "10px 16px",
-  borderRadius: 6,
-  border: "none",
-  fontWeight: 600,
-  cursor: "pointer",
-};
