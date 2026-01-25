@@ -23,7 +23,7 @@ export default function SettingsSidebar() {
       }}
     >
       {/* ================= COMPANY ================= */}
-      <div className="sidebar-label">Company</div>
+      <SectionLabel title="Company" />
 
       <SidebarItem
         title="Company Profile"
@@ -47,7 +47,7 @@ export default function SettingsSidebar() {
       />
 
       {/* ================= MODULES ================= */}
-      <div className="sidebar-label">Modules</div>
+      <SectionLabel title="Modules" />
 
       <SidebarItem
         title="Modules"
@@ -65,7 +65,7 @@ export default function SettingsSidebar() {
       />
 
       {/* ================= OTHERS ================= */}
-      <div className="sidebar-label">Others</div>
+      <SectionLabel title="Others" />
 
       <SidebarItem
         title="Others"
@@ -74,12 +74,18 @@ export default function SettingsSidebar() {
         onClick={() => go("/settings/others")}
       />
 
+      {/* ================= VENDORS ================= */}
+      <SectionLabel title="Vendors" />
+
       <SidebarItem
         title="Vendors"
         desc="Suppliers, Referrers."
         active={isActive("/settings/vendors")}
         onClick={() => go("/settings/vendors")}
       />
+
+      {/* ================= PAYMENTS ================= */}
+      <SectionLabel title="Payments" />
 
       <SidebarItem
         title="Payments"
@@ -95,6 +101,24 @@ export default function SettingsSidebar() {
         onClick={() => go("/settings/subscription")}
       />
     </aside>
+  );
+}
+
+/* ================= SECTION LABEL ================= */
+
+function SectionLabel({ title }: { title: string }) {
+  return (
+    <div
+      style={{
+        fontSize: 11,
+        fontWeight: 600,
+        color: "#6b7280",
+        margin: "16px 8px 6px",
+        textTransform: "uppercase",
+      }}
+    >
+      {title}
+    </div>
   );
 }
 
@@ -132,6 +156,7 @@ function SidebarItem({
         style={{
           fontWeight: active ? 600 : 500,
           fontSize: 14,
+          color: "#111827",
         }}
       >
         {title}

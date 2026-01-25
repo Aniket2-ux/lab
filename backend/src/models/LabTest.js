@@ -10,24 +10,20 @@ const LabTest = sequelize.define(
       primaryKey: true,
     },
 
-    name: {
+    code: {
       type: DataTypes.STRING,
       allowNull: false,
       unique: true,
     },
 
-    unit: {
+    name: {
       type: DataTypes.STRING,
-      allowNull: true,
-    },
-
-    normalRange: {
-      type: DataTypes.STRING,
-      allowNull: true,
+      allowNull: false,
     },
 
     price: {
       type: DataTypes.FLOAT,
+      allowNull: false,
       defaultValue: 0,
     },
   },
