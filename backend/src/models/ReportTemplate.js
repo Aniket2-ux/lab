@@ -1,11 +1,19 @@
-const { DataTypes } = require("sequelize");
-const sequelize = require("../db");
+module.exports = (sequelize, DataTypes) => {
+  const ReportTemplate = sequelize.define("ReportTemplate", {
+    labName: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    headerText: {
+      type: DataTypes.TEXT,
+    },
+    footerText: {
+      type: DataTypes.TEXT,
+    },
+    authorizedSignatory: {
+      type: DataTypes.STRING,
+    },
+  });
 
-const ReportTemplate = sequelize.define("ReportTemplate", {
-  labName: DataTypes.STRING,
-  header: DataTypes.STRING,
-  footer: DataTypes.STRING,
-  authorizedSignatory: DataTypes.STRING,
-});
-
-module.exports = ReportTemplate;
+  return ReportTemplate;
+};

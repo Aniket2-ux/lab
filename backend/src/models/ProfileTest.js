@@ -1,6 +1,18 @@
-const { DataTypes } = require("sequelize");
-const sequelize = require("../db");
+module.exports = (sequelize, DataTypes) => {
+  const ProfileTest = sequelize.define(
+    "ProfileTest",
+    {
+      id: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true,
+      },
+    },
+    {
+      tableName: "profile_tests",
+      timestamps: false,
+    }
+  );
 
-const ProfileTest = sequelize.define("ProfileTest", {});
-
-module.exports = ProfileTest;
+  return ProfileTest;
+};

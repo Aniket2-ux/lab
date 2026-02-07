@@ -1,12 +1,23 @@
-const { DataTypes } = require("sequelize");
-const sequelize = require("../db");
+module.exports = (sequelize, DataTypes) => {
+  const TestCategory = sequelize.define(
+    "TestCategory",
+    {
+      id: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true,
+      },
+      name: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true,
+      },
+    },
+    {
+      tableName: "test_categories",
+      timestamps: true,
+    }
+  );
 
-const TestCategory = sequelize.define("TestCategory", {
-  name: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    unique: true,
-  },
-});
-
-module.exports = TestCategory;
+  return TestCategory;
+};

@@ -83,6 +83,16 @@ app.use("/api/client-reports", require("./routes/clientReports"));
 app.use("/uploads", express.static("uploads"));
 app.use("/api/doctors", require("./routes/doctors"));
 app.use("/api/vendors/supplier", require("./routes/vendors/supplier"));
+app.use("/api/test-categories", require("./routes/testCategories"));
+app.use("/api/sample-types", require("./routes/sampleTypes"));
+app.use("/api/methods", require("./routes/methods"));
+app.use("/api/tests", require("./routes/tests"));
+app.use("/api/test-parameters", require("./routes/testParameters"));
+app.use("/api/profiles", require("./routes/profiles"));
+app.use("/api/report-template", require("./routes/reportTemplate"));
+app.use("/api/doctors", require("./routes/doctors"));
+
+
 
 
 

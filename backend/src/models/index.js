@@ -1,29 +1,16 @@
-const LabTest = require("./LabTest");
-const TestParameter = require("./TestParameter");
-const ClientReport = require("./ClientReport");
-const ReportItem = require("./ReportItem");
+db.Profile = require("./Profile")(sequelize, Sequelize.DataTypes);
+db.ProfileTest = require("./ProfileTest")(sequelize, Sequelize.DataTypes);
+db.ReportTemplate = require("./ReportTemplate")(sequelize, Sequelize.DataTypes);
+db.Doctor = require("./Doctor")(sequelize, Sequelize.DataTypes);
 
-/* Test → Parameters */
-LabTest.hasMany(TestParameter, {
-  foreignKey: "labTestId",
-  onDelete: "CASCADE",
-});
-TestParameter.belongsTo(LabTest, {
-  foreignKey: "labTestId",
+
+/* relations */
+db.Profile.belongsToMany(db.Test, {
+  through: db.ProfileTest,
+  foreignKey: "profile_id",
 });
 
-/* Report → Items */
-ClientReport.hasMany(ReportItem, {
-  foreignKey: "reportId",
-  onDelete: "CASCADE",
+db.Test.belongsToMany(db.Profile, {
+  through: db.ProfileTest,
+  foreignKey: "test_id",
 });
-ReportItem.belongsTo(ClientReport, {
-  foreignKey: "reportId",
-});
-
-module.exports = {
-  LabTest,
-  TestParameter,
-  ClientReport,
-  ReportItem,
-};

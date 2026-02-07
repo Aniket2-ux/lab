@@ -1,11 +1,16 @@
 module.exports = (sequelize, DataTypes) => {
-  const TestParameter = sequelize.define(
-    "TestParameter",
+  const Test = sequelize.define(
+    "Test",
     {
       id: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
         primaryKey: true,
+      },
+      code: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true,
       },
       name: {
         type: DataTypes.STRING,
@@ -15,28 +20,16 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: false,
       },
-      normal_min: {
+      price: {
         type: DataTypes.FLOAT,
         allowNull: false,
-      },
-      normal_max: {
-        type: DataTypes.FLOAT,
-        allowNull: false,
-      },
-      critical_low: {
-        type: DataTypes.FLOAT,
-        allowNull: true,
-      },
-      critical_high: {
-        type: DataTypes.FLOAT,
-        allowNull: true,
       },
     },
     {
-      tableName: "test_parameters",
+      tableName: "tests",
       timestamps: true,
     }
   );
 
-  return TestParameter;
+  return Test;
 };

@@ -1,33 +1,13 @@
-const express = require("express");
-const router = express.Router();
+const router = require("express").Router();
+const { Doctor } = require("../models");
 
-/**
- * TEMP in-memory doctors
- * (later you can connect DB)
- */
-let doctors = [];
-
-// GET all doctors
-router.get("/", (_req, res) => {
-  res.json(doctors);
+router.get("/", async (_req, res) => {
+  res.json(await Doctor.findAll());
 });
 
-// ADD doctor
-router.post("/", (req, res) => {
-  const { name, phone } = req.body;
-
-  if (!name) {
-    return res.status(400).json({ error: "Doctor name required" });
-  }
-
-  const doctor = {
-    id: Date.now(),
-    name,
-    phone: phone || null,
-  };
-
-  doctors.push(doctor);
-  res.status(201).json(doctor);
+router.post("/", async (req, res) => {
+  const record = await Doctor.create(req.body);
+  res.json(record);
 });
 
 module.exports = router;
