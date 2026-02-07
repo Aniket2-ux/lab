@@ -1,21 +1,33 @@
-const router = require("express").Router();
-const db = require("../models");
+const express = require("express");
+const router = express.Router();
 const db = require("../models");
 
+const TestCategory = db.TestCategory;
 
-/* GET ALL */
-router.get("/", async (_req, res) => {
-  const data = await TestCategory.findAll({
-    order: [["name", "ASC"]],
-  });
-  res.json(data);
+/* GET all categories */
+router.get("/", async (req, res) => {
+  try {
+    const data = await TestCategory.findAll({
+      order: [["name", "ASC"]],
+    });
+    res.json(data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch categories" });
+  }
 });
 
-/* CREATE */
+/* CREATE category */
 router.post("/", async (req, res) => {
-  const { name } = req.body;
-  const item = await TestCategory.create({ name });
-  res.json(item);
+  try {
+    const category = await TestCategory.create({
+      name: req.body.name,
+    });
+    res.json(category);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to create category" });
+  }
 });
 
 module.exports = router;
