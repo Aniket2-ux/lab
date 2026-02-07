@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 import Sidebar from "@/components/Sidebar";
 import HeaderBar from "@/components/HeaderBar";
 
@@ -14,7 +14,7 @@ export default function AppLayout({
       <Sidebar />
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-        <HeaderBar pageTitle="" />
+        <HeaderBar pageTitle="Dashboard" />
 
         <main
           style={{
