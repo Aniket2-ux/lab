@@ -1,20 +1,21 @@
-const express = require("express");
-const router = express.Router();
-const { TestCategory } = require("../models");
+const router = require("express").Router();
+const db = require("../models");
+const db = require("../models");
 
-/* GET all categories */
-router.get("/", async (req, res) => {
-  const data = await TestCategory.findAll({ order: [["name", "ASC"]] });
+
+/* GET ALL */
+router.get("/", async (_req, res) => {
+  const data = await TestCategory.findAll({
+    order: [["name", "ASC"]],
+  });
   res.json(data);
 });
 
-/* CREATE category */
+/* CREATE */
 router.post("/", async (req, res) => {
   const { name } = req.body;
-  if (!name) return res.status(400).json({ error: "Name required" });
-
-  const category = await TestCategory.create({ name });
-  res.json(category);
+  const item = await TestCategory.create({ name });
+  res.json(item);
 });
 
 module.exports = router;
