@@ -1,33 +1,55 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { API_BASE } from "@/lib/apiBase";
 
 export default function CreateSampleType() {
   const router = useRouter();
+  const [name, setName] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  async function save() {
+    if (!name.trim()) return;
+
+    setSaving(true);
+    await fetch(`${API_BASE}/api/sample-types`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name }),
+    });
+
+    router.push("/settings/masters/sample-types");
+  }
 
   return (
     <div style={drawer}>
       <div style={header}>
         <h3>Create Sample Type</h3>
-        <button onClick={() => router.back()} style={closeBtn}>
-          ✕
-        </button>
+        <button onClick={() => router.back()} style={closeBtn}>✕</button>
       </div>
 
       <label>Sample Type Name *</label>
-      <input placeholder="Serum" style={input} />
+      <input
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        placeholder="Serum"
+        style={input}
+      />
 
       <div style={actions}>
         <button onClick={() => router.back()} style={cancelBtn}>
           CANCEL
         </button>
-        <button style={saveBtn}>SAVE</button>
+        <button onClick={save} style={saveBtn} disabled={saving}>
+          {saving ? "SAVING..." : "SAVE"}
+        </button>
       </div>
     </div>
   );
 }
 
-/* ---------- styles ---------- */
+/* styles */
 
 const drawer = {
   position: "fixed" as const,
@@ -38,20 +60,18 @@ const drawer = {
   background: "#fff",
   padding: 24,
   boxShadow: "-4px 0 12px rgba(0,0,0,0.1)",
-  zIndex: 50,
 };
 
 const header = {
   display: "flex",
   justifyContent: "space-between",
-  marginBottom: 24,
+  marginBottom: 20,
 };
 
 const input = {
   width: "100%",
   padding: 10,
   marginTop: 6,
-  marginBottom: 20,
   borderRadius: 6,
   border: "1px solid #ccc",
 };
@@ -60,6 +80,7 @@ const actions = {
   display: "flex",
   justifyContent: "flex-end",
   gap: 12,
+  marginTop: 20,
 };
 
 const cancelBtn = {
@@ -68,16 +89,14 @@ const cancelBtn = {
   color: "#16a34a",
   padding: "8px 14px",
   borderRadius: 6,
-  fontWeight: 600,
 };
 
 const saveBtn = {
-  border: "none",
   background: "#16a34a",
   color: "#fff",
+  border: "none",
   padding: "8px 16px",
   borderRadius: 6,
-  fontWeight: 600,
 };
 
 const closeBtn = {

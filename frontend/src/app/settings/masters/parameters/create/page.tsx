@@ -1,125 +1,78 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { API_BASE } from "@/lib/apiBase";
 
 export default function CreateParameter() {
   const router = useRouter();
+  const [tests, setTests] = useState<any[]>([]);
+  const [form, setForm] = useState<any>({});
+
+  useEffect(() => {
+    fetch(`${API_BASE}/api/tests`)
+      .then((r) => r.json())
+      .then(setTests);
+  }, []);
+
+  async function save() {
+    await fetch(`${API_BASE}/api/test-parameters`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(form),
+    });
+
+    router.push("/settings/masters/parameters");
+  }
 
   return (
     <div style={drawer}>
-      <div style={header}>
-        <h3>Add Test Parameter</h3>
-        <button onClick={() => router.back()} style={closeBtn}>
-          ✕
-        </button>
-      </div>
+      <h3>Add Test Parameter</h3>
 
-      <div style={{ marginBottom: 12 }}>
-        <label>Test *</label>
-        <select style={input}>
-          <option>Select Test</option>
-          <option>GLU-F — Fasting Blood Sugar</option>
-          <option>UREA — Urea</option>
-        </select>
-      </div>
+      <select
+        onChange={(e) => setForm({ ...form, test_id: e.target.value })}
+        style={input}
+      >
+        <option>Select Test</option>
+        {tests.map((t) => (
+          <option key={t.id} value={t.id}>
+            {t.code} — {t.name}
+          </option>
+        ))}
+      </select>
 
-      <div style={{ marginBottom: 12 }}>
-        <label>Parameter Name *</label>
-        <input placeholder="Glucose" style={input} />
-      </div>
+      <input placeholder="Parameter Name" onChange={(e)=>setForm({...form,name:e.target.value})} style={input}/>
+      <input placeholder="Unit" onChange={(e)=>setForm({...form,unit:e.target.value})} style={input}/>
+      <input placeholder="Normal Min" type="number" onChange={(e)=>setForm({...form,normal_min:e.target.value})} style={input}/>
+      <input placeholder="Normal Max" type="number" onChange={(e)=>setForm({...form,normal_max:e.target.value})} style={input}/>
+      <input placeholder="Critical Low" type="number" onChange={(e)=>setForm({...form,critical_low:e.target.value})} style={input}/>
+      <input placeholder="Critical High" type="number" onChange={(e)=>setForm({...form,critical_high:e.target.value})} style={input}/>
 
-      <div style={{ marginBottom: 12 }}>
-        <label>Unit *</label>
-        <input placeholder="mg/dl" style={input} />
-      </div>
-
-      <div style={{ display: "flex", gap: 12, marginBottom: 12 }}>
-        <div style={{ flex: 1 }}>
-          <label>Normal Min *</label>
-          <input type="number" placeholder="70" style={input} />
-        </div>
-        <div style={{ flex: 1 }}>
-          <label>Normal Max *</label>
-          <input type="number" placeholder="110" style={input} />
-        </div>
-      </div>
-
-      <div style={{ display: "flex", gap: 12, marginBottom: 20 }}>
-        <div style={{ flex: 1 }}>
-          <label>Critical Low</label>
-          <input type="number" placeholder="50" style={input} />
-        </div>
-        <div style={{ flex: 1 }}>
-          <label>Critical High</label>
-          <input type="number" placeholder="300" style={input} />
-        </div>
-      </div>
-
-      <div style={actions}>
-        <button onClick={() => router.back()} style={cancelBtn}>
-          CANCEL
-        </button>
-        <button style={saveBtn}>SAVE</button>
-      </div>
+      <button onClick={save} style={saveBtn}>SAVE</button>
     </div>
   );
 }
-
-/* ---------- styles ---------- */
 
 const drawer = {
   position: "fixed" as const,
   right: 0,
   top: 0,
-  width: 480,
+  width: 460,
   height: "100vh",
   background: "#fff",
   padding: 24,
-  boxShadow: "-4px 0 12px rgba(0,0,0,0.1)",
-  zIndex: 50,
-  overflowY: "auto" as const,
-};
-
-const header = {
-  display: "flex",
-  justifyContent: "space-between",
-  marginBottom: 24,
 };
 
 const input = {
   width: "100%",
   padding: 10,
-  marginTop: 6,
-  borderRadius: 6,
-  border: "1px solid #ccc",
-};
-
-const actions = {
-  display: "flex",
-  justifyContent: "flex-end",
-  gap: 12,
-};
-
-const cancelBtn = {
-  border: "1px solid #16a34a",
-  background: "#fff",
-  color: "#16a34a",
-  padding: "8px 14px",
-  borderRadius: 6,
-  fontWeight: 600,
+  marginBottom: 10,
 };
 
 const saveBtn = {
-  border: "none",
   background: "#16a34a",
   color: "#fff",
-  padding: "8px 16px",
-  borderRadius: 6,
-  fontWeight: 600,
-};
-
-const closeBtn = {
-  background: "none",
+  padding: "10px 16px",
   border: "none",
-  fontSize: 18,
+  borderRadius: 6,
 };

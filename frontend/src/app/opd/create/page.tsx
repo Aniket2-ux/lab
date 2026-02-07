@@ -1,60 +1,62 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { API_BASE } from "@/lib/apiBase";
 
-export default function CreateTestCategory() {
+export default function CreateOPD() {
   const router = useRouter();
-  const [name, setName] = useState("");
-  const [saving, setSaving] = useState(false);
-
-  async function save() {
-    if (!name.trim()) return;
-
-    try {
-      setSaving(true);
-      await fetch(`${API_BASE}/api/test-categories`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name }),
-      });
-
-      router.push("/settings/masters/test-categories");
-    } catch (err) {
-      console.error("Failed to save category", err);
-      alert("Error saving category");
-    } finally {
-      setSaving(false);
-    }
-  }
 
   return (
     <div style={drawer}>
       <div style={header}>
-        <h3>Create Test Category</h3>
+        <h3>New OPD Registration</h3>
         <button onClick={() => router.back()} style={closeBtn}>
           ✕
         </button>
       </div>
 
-      <div style={{ marginBottom: 20 }}>
-        <label>Category Name *</label>
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Biochemistry"
-          style={input}
-        />
+      <div style={{ marginBottom: 12 }}>
+        <label>Patient Name *</label>
+        <input placeholder="Patient Name" style={input} />
+      </div>
+
+      <div style={{ display: "flex", gap: 12, marginBottom: 12 }}>
+        <div style={{ flex: 1 }}>
+          <label>Age</label>
+          <input type="number" placeholder="35" style={input} />
+        </div>
+        <div style={{ flex: 1 }}>
+          <label>Gender</label>
+          <select style={input}>
+            <option>Select</option>
+            <option>Male</option>
+            <option>Female</option>
+          </select>
+        </div>
+      </div>
+
+      <div style={{ marginBottom: 12 }}>
+        <label>Doctor / Referral *</label>
+        <select style={input}>
+          <option>Select Doctor</option>
+          <option>Dr. R. Sharma</option>
+          <option>Dr. S. Yadav</option>
+        </select>
+      </div>
+
+      <div style={{ marginBottom: 12 }}>
+        <label>Profile / Test *</label>
+        <select style={input}>
+          <option>Select Profile or Test</option>
+          <option>LFT — Liver Function Test</option>
+          <option>GLU-F — Fasting Blood Sugar</option>
+        </select>
       </div>
 
       <div style={actions}>
         <button onClick={() => router.back()} style={cancelBtn}>
           CANCEL
         </button>
-        <button onClick={save} style={saveBtn} disabled={saving}>
-          {saving ? "SAVING..." : "SAVE"}
-        </button>
+        <button style={saveBtn}>SAVE OPD</button>
       </div>
     </div>
   );
@@ -66,7 +68,7 @@ const drawer = {
   position: "fixed" as const,
   right: 0,
   top: 0,
-  width: 420,
+  width: 520,
   height: "100vh",
   background: "#fff",
   padding: 24,

@@ -1,52 +1,40 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { API_BASE } from "@/lib/apiBase";
 
-export default function DoctorMasterPage() {
-  const router = useRouter();
+export default function DoctorsPage() {
+  const [data, setData] = useState<any[]>([]);
+  const [name, setName] = useState("");
+
+  useEffect(() => {
+    fetch(`${API_BASE}/api/doctors`)
+      .then(r => r.json())
+      .then(setData);
+  }, []);
+
+  async function add() {
+    await fetch(`${API_BASE}/api/doctors`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name }),
+    });
+    location.reload();
+  }
 
   return (
-    <div style={{ padding: 24, width: "100%" }}>
-      <div style={header}>
-        <h2>Doctors / Referrals</h2>
+    <div style={{ padding: 24 }}>
+      <h2>Doctors / Referrals</h2>
 
-        <button
-          onClick={() =>
-            router.push("/settings/masters/doctors/create")
-          }
-          style={createBtn}
-        >
-          ADD DOCTOR
-        </button>
-      </div>
+      <input placeholder="Doctor Name" value={name} onChange={e=>setName(e.target.value)} style={input}/>
+      <button onClick={add} style={btn}>ADD</button>
 
-      <div style={box}>
-        <p>No doctors added yet.</p>
-      </div>
+      <ul>
+        {data.map(d => <li key={d.id}>{d.name}</li>)}
+      </ul>
     </div>
   );
 }
 
-/* ---------- styles ---------- */
-
-const header = {
-  display: "flex",
-  justifyContent: "space-between",
-  marginBottom: 16,
-};
-
-const createBtn = {
-  background: "#16a34a",
-  color: "#fff",
-  border: "none",
-  padding: "10px 16px",
-  borderRadius: 6,
-  fontWeight: 600,
-  cursor: "pointer",
-};
-
-const box = {
-  background: "#fff",
-  padding: 16,
-  borderRadius: 8,
-};
+const input = { padding: 8, marginRight: 10 };
+const btn = { padding: "8px 14px", background: "#16a34a", color: "#fff", border: "none" };

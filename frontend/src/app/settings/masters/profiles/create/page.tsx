@@ -1,108 +1,95 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { API_BASE } from "@/lib/apiBase";
 
 export default function CreateProfile() {
   const router = useRouter();
+  const [tests, setTests] = useState<any[]>([]);
+  const [selected, setSelected] = useState<number[]>([]);
+  const [form, setForm] = useState<any>({});
+
+  useEffect(() => {
+    fetch(`${API_BASE}/api/tests`)
+      .then((r) => r.json())
+      .then(setTests);
+  }, []);
+
+  function toggle(id:number) {
+    setSelected((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  }
+
+  async function save() {
+    await fetch(`${API_BASE}/api/profiles`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...form,
+        test_ids: selected,
+        price: Number(form.price),
+      }),
+    });
+
+    router.push("/settings/masters/profiles");
+  }
 
   return (
     <div style={drawer}>
-      <div style={header}>
-        <h3>Create Profile / Package</h3>
-        <button onClick={() => router.back()} style={closeBtn}>
-          ✕
-        </button>
+      <h3>Create Profile / Package</h3>
+
+      <input placeholder="Code (CBC)" onChange={(e)=>setForm({...form,code:e.target.value})} style={input}/>
+      <input placeholder="Name" onChange={(e)=>setForm({...form,name:e.target.value})} style={input}/>
+      <input placeholder="Price" type="number" onChange={(e)=>setForm({...form,price:e.target.value})} style={input}/>
+
+      <div style={{ marginTop: 10 }}>
+        <b>Select Tests</b>
+        {tests.map((t) => (
+          <label key={t.id} style={row}>
+            <input
+              type="checkbox"
+              checked={selected.includes(t.id)}
+              onChange={() => toggle(t.id)}
+            />
+            {t.code} — {t.name}
+          </label>
+        ))}
       </div>
 
-      <div style={{ marginBottom: 12 }}>
-        <label>Profile Code *</label>
-        <input placeholder="LFT" style={input} />
-      </div>
-
-      <div style={{ marginBottom: 12 }}>
-        <label>Profile Name *</label>
-        <input placeholder="Liver Function Test" style={input} />
-      </div>
-
-      <div style={{ marginBottom: 12 }}>
-        <label>Package Price *</label>
-        <input type="number" placeholder="1200" style={input} />
-      </div>
-
-      <div style={hint}>
-        Tests will be added in the next step (Profile → Test Mapping)
-      </div>
-
-      <div style={actions}>
-        <button onClick={() => router.back()} style={cancelBtn}>
-          CANCEL
-        </button>
-        <button style={saveBtn}>SAVE</button>
-      </div>
+      <button onClick={save} style={saveBtn}>SAVE</button>
     </div>
   );
 }
-
-/* ---------- styles ---------- */
 
 const drawer = {
   position: "fixed" as const,
   right: 0,
   top: 0,
-  width: 460,
+  width: 480,
   height: "100vh",
   background: "#fff",
   padding: 24,
-  boxShadow: "-4px 0 12px rgba(0,0,0,0.1)",
-  zIndex: 50,
-};
-
-const header = {
-  display: "flex",
-  justifyContent: "space-between",
-  marginBottom: 24,
 };
 
 const input = {
   width: "100%",
   padding: 10,
-  marginTop: 6,
-  borderRadius: 6,
-  border: "1px solid #ccc",
+  marginBottom: 10,
 };
 
-const hint = {
-  fontSize: 12,
-  color: "#6b7280",
-  marginBottom: 20,
-};
-
-const actions = {
+const row = {
   display: "flex",
-  justifyContent: "flex-end",
-  gap: 12,
-};
-
-const cancelBtn = {
-  border: "1px solid #16a34a",
-  background: "#fff",
-  color: "#16a34a",
-  padding: "8px 14px",
-  borderRadius: 6,
-  fontWeight: 600,
+  gap: 8,
+  marginBottom: 6,
 };
 
 const saveBtn = {
-  border: "none",
   background: "#16a34a",
   color: "#fff",
-  padding: "8px 16px",
-  borderRadius: 6,
-  fontWeight: 600,
-};
-
-const closeBtn = {
-  background: "none",
+  padding: "10px 16px",
   border: "none",
-  fontSize: 18,
+  borderRadius: 6,
+  marginTop: 12,
 };
