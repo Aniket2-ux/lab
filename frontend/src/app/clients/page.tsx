@@ -626,6 +626,7 @@ function ClientDetailsDrawer({
     marginBottom: 10,
   }}
 >
+
   <span style={{ fontWeight: 600, borderBottom: "2px solid #0b7a53" }}>
     Visits
   </span>
@@ -636,22 +637,23 @@ function ClientDetailsDrawer({
   <span style={{ color: "#6b7280" }}>Reports</span>
 </div>
 
-{/* VISITS LIST */}
 <div style={{ fontSize: 13, color: "#6b7280" }}>
   {visits.length === 0 ? (
-    <div>No visits yet…</div>
+      <div>No visits yet…</div>
+    
+
   ) : (
     visits.map((v: any) => (
       <div key={v.id} style={{ padding: "6px 0" }}>
-        {v.date
-          ? new Date(v.date).toLocaleString()
-          : "No date"}
+        {new Date(v.date).toLocaleString()}
       </div>
     ))
   )}
 </div>
-
-
+      </div>
+    </div>
+  );
+}
 
 /* ---------------- Create client drawer (big form) ---------------- */
 
