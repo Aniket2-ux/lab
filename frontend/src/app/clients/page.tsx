@@ -469,8 +469,15 @@ function ClientDetailsDrawer({
   onClose: () => void;
   onCreatePrescription: () => void;
 }) {
+  const [visits, setVisits] = useState<any[]>([]);
   const ageText = client.age ? `${client.age} Years` : "";
   const genderText = client.gender || "";
+  useEffect(() => {
+  fetch(`${API_BASE}/api/visits/${client.id}`)
+    .then(res => res.json())
+    .then(setVisits)
+    .catch(err => console.error(err));
+}, [client.id]);
 
   return (
     <div
@@ -555,46 +562,95 @@ function ClientDetailsDrawer({
           <span>Not sent yet</span>
         </div>
 
-        <div style={{ marginBottom: 24 }}>
-          <button
-            type="button"
-            onClick={onCreatePrescription}
-            style={{
-              padding: "8px 14px",
-              borderRadius: 4,
-              border: "1px solid #0b7a53",
-              background: "#e6f4ef",
-              color: "#0b7a53",
-              fontSize: 13,
-              cursor: "pointer",
-              fontWeight: 600,
-            }}
-          >
-            CREATE PRESCRIPTION ▾
-          </button>
-        </div>
+<div style={{ marginBottom: 24 }}>
+  <div style={{ display: "flex", gap: 8 }}>
 
-        <div
-          style={{
-            display: "flex",
-            gap: 24,
-            fontSize: 13,
-            borderBottom: "1px solid #e5e7eb",
-            paddingBottom: 6,
-            marginBottom: 10,
-          }}
-        >
-          <span style={{ fontWeight: 600, borderBottom: "2px solid #0b7a53" }}>
-            Visits
-          </span>
-          <span style={{ color: "#6b7280" }}>Bills</span>
-          <span style={{ color: "#6b7280" }}>Prescriptions</span>
-          <span style={{ color: "#6b7280" }}>Vitals</span>
-          <span style={{ color: "#6b7280" }}>Labs</span>
-          <span style={{ color: "#6b7280" }}>Reports</span>
-        </div>
+    {/* CREATE PRESCRIPTION */}
+    <button
+      type="button"
+      onClick={onCreatePrescription}
+      style={{
+        padding: "8px 14px",
+        borderRadius: 4,
+        border: "1px solid #0b7a53",
+        background: "#e6f4ef",
+        color: "#0b7a53",
+        fontSize: 13,
+        cursor: "pointer",
+        fontWeight: 600,
+      }}
+    >
+      CREATE PRESCRIPTION ▾
+    </button>
 
-        <div style={{ fontSize: 13, color: "#6b7280" }}>No visits yet…</div>
+    {/* CREATE VISIT */}
+    <button
+      type="button"
+      onClick={async () => {
+        await fetch(`${API_BASE}/api/visits`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            clientId: client.id,
+            date: new Date(),
+            notes: "visit",
+          }),
+        });
+
+        const res = await fetch(`${API_BASE}/api/visits/${client.id}`);
+        const data = await res.json();
+        setVisits(data);
+      }}
+      style={{
+        padding: "8px 14px",
+        borderRadius: 4,
+        border: "1px solid #2563eb",
+        background: "#eff6ff",
+        color: "#2563eb",
+        fontSize: 13,
+        cursor: "pointer",
+        fontWeight: 600,
+      }}
+    >
+      CREATE VISIT
+    </button>
+
+  </div>
+</div>
+
+<div
+  style={{
+    display: "flex",
+    gap: 24,
+    fontSize: 13,
+    borderBottom: "1px solid #e5e7eb",
+    paddingBottom: 6,
+    marginBottom: 10,
+  }}
+>
+  <span style={{ fontWeight: 600, borderBottom: "2px solid #0b7a53" }}>
+    Visits
+  </span>
+  <span style={{ color: "#6b7280" }}>Bills</span>
+  <span style={{ color: "#6b7280" }}>Prescriptions</span>
+  <span style={{ color: "#6b7280" }}>Vitals</span>
+  <span style={{ color: "#6b7280" }}>Labs</span>
+  <span style={{ color: "#6b7280" }}>Reports</span>
+</div>
+
+<div style={{ fontSize: 13, color: "#6b7280" }}>
+  {visits.length === 0 ? (
+    <div>No visits yet…</div>
+  ) : (
+    visits.map((v: any) => (
+      <div key={v.id} style={{ padding: "6px 0" }}>
+        {new Date(v.date).toLocaleString()}
+      </div>
+    ))
+  )}
+</div>
       </div>
     </div>
   );
