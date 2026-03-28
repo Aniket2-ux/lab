@@ -562,64 +562,60 @@ function ClientDetailsDrawer({
           <span>Not sent yet</span>
         </div>
 
-<div style={{ marginBottom: 24 }}>
-  <div style={{ display: "flex", gap: 8 }}>
+<div style={{ marginBottom: 20, display: "flex", gap: 8 }}>
 
-    {/* CREATE PRESCRIPTION */}
-    <button
-      type="button"
-      onClick={onCreatePrescription}
-      style={{
-        padding: "8px 14px",
-        borderRadius: 4,
-        border: "1px solid #0b7a53",
-        background: "#e6f4ef",
-        color: "#0b7a53",
-        fontSize: 13,
-        cursor: "pointer",
-        fontWeight: 600,
-      }}
-    >
-      CREATE PRESCRIPTION ▾
-    </button>
+  {/* CREATE PRESCRIPTION */}
+  <button
+    onClick={onCreatePrescription}
+    style={{
+      padding: "8px 14px",
+      borderRadius: 4,
+      border: "1px solid #0b7a53",
+      background: "#e6f4ef",
+      color: "#0b7a53",
+      fontSize: 13,
+      cursor: "pointer",
+      fontWeight: 600,
+    }}
+  >
+    CREATE PRESCRIPTION ▾
+  </button>
 
-    {/* CREATE VISIT */}
-    <button
-      type="button"
-      onClick={async () => {
-        await fetch(`${API_BASE}/api/visits`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            clientId: client.id,
-            date: new Date(),
-            notes: "visit",
-          }),
-        });
+  {/* CREATE VISIT */}
+  <button
+    onClick={async () => {
+      await fetch(`${API_BASE}/api/visits`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          clientId: client.id,
+          notes: "visit",
+        }),
+      });
 
-        const res = await fetch(`${API_BASE}/api/visits/${client.id}`);
-        const data = await res.json();
-        setVisits(data);
-      }}
-      style={{
-        padding: "8px 14px",
-        borderRadius: 4,
-        border: "1px solid #2563eb",
-        background: "#eff6ff",
-        color: "#2563eb",
-        fontSize: 13,
-        cursor: "pointer",
-        fontWeight: 600,
-      }}
-    >
-      CREATE VISIT
-    </button>
+      const res = await fetch(`${API_BASE}/api/visits/${client.id}`);
+      const data = await res.json();
+      setVisits(data);
+    }}
+    style={{
+      padding: "8px 14px",
+      borderRadius: 4,
+      border: "1px solid #2563eb",
+      background: "#eff6ff",
+      color: "#2563eb",
+      fontSize: 13,
+      cursor: "pointer",
+      fontWeight: 600,
+    }}
+  >
+    CREATE VISIT
+  </button>
 
-  </div>
 </div>
 
+{/* TABS */}
 <div
   style={{
     display: "flex",
@@ -640,21 +636,22 @@ function ClientDetailsDrawer({
   <span style={{ color: "#6b7280" }}>Reports</span>
 </div>
 
+{/* VISITS LIST */}
 <div style={{ fontSize: 13, color: "#6b7280" }}>
   {visits.length === 0 ? (
     <div>No visits yet…</div>
   ) : (
     visits.map((v: any) => (
       <div key={v.id} style={{ padding: "6px 0" }}>
-        {new Date(v.date).toLocaleString()}
+        {v.date
+          ? new Date(v.date).toLocaleString()
+          : "No date"}
       </div>
     ))
   )}
 </div>
-      </div>
-    </div>
-  );
-}
+
+
 
 /* ---------------- Create client drawer (big form) ---------------- */
 
