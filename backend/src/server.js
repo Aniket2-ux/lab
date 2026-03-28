@@ -34,6 +34,7 @@ app.use(express.json());
   "CreditNote",
   "LabRecord",
   "ClientReport",
+   "Visit", 
 ].forEach((model) => {
   try {
     require(`./models/${model}`);
@@ -91,6 +92,7 @@ app.use("/api/test-parameters", require("./routes/testParameters"));
 app.use("/api/profiles", require("./routes/profiles"));
 app.use("/api/report-template", require("./routes/reportTemplate"));
 app.use("/api/doctors", require("./routes/doctors"));
+app.use("/api/visits", require("./routes/visits"));
 
 
 
