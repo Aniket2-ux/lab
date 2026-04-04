@@ -3,6 +3,14 @@
 import { useSearchParams, useRouter } from "next/navigation";
 import { useState } from "react";
 
+/* ---------- TYPES ---------- */
+type Item = {
+  name: string;
+  dosage: string;
+  duration: string;
+};
+
+/* ---------- COMPONENT ---------- */
 export default function CreatePrescription() {
   const params = useSearchParams();
   const router = useRouter();
@@ -13,21 +21,33 @@ export default function CreatePrescription() {
   const [diagnosis, setDiagnosis] = useState("");
   const [notes, setNotes] = useState("");
 
-  const [items, setItems] = useState([
+  const [items, setItems] = useState<Item[]>([
     { name: "", dosage: "", duration: "" },
   ]);
 
+  /* ---------- ADD ROW ---------- */
   const handleAddRow = () => {
     setItems([...items, { name: "", dosage: "", duration: "" }]);
   };
 
-  const handleChange = (index: number, field: string, value: string) => {
+  /* ---------- UPDATE FIELD ---------- */
+  const handleChange = (
+    index: number,
+    field: keyof Item,
+    value: string
+  ) => {
     const updated = [...items];
     updated[index][field] = value;
     setItems(updated);
   };
 
+  /* ---------- SAVE ---------- */
   const handleSave = async () => {
+    if (!visitId || !clientId) {
+      alert("Missing visit/client ID");
+      return;
+    }
+
     try {
       const res = await fetch(
         "http://145.223.23.176:5000/api/prescriptions",
@@ -48,64 +68,73 @@ export default function CreatePrescription() {
 
       const data = await res.json();
 
-      if (!res.ok) {
-        alert(data.error || "Error");
-        return;
+      if (data.success) {
+        alert("Prescription created ✅");
+        router.push(`/opd?clientId=${clientId}`);
+      } else {
+        alert("Failed ❌");
       }
-
-      alert("Prescription saved ✅");
-      router.push("/clients");
     } catch (err) {
       console.error(err);
-      alert("Something went wrong ❌");
+      alert("Server error ❌");
     }
   };
 
+  /* ---------- UI ---------- */
   return (
-    <div style={{ padding: 20, marginLeft: 240 }}>
+    <div style={{ padding: 20 }}>
       <h2>Create Prescription</h2>
 
-      <p><b>Visit ID:</b> {visitId}</p>
-
-      <div style={{ marginTop: 20 }}>
+      {/* Diagnosis */}
+      <div style={{ marginBottom: 12 }}>
         <label>Diagnosis</label>
-        <textarea
-          style={input}
+        <input
           value={diagnosis}
           onChange={(e) => setDiagnosis(e.target.value)}
+          style={input}
         />
       </div>
 
-      <div style={{ marginTop: 20 }}>
+      {/* Notes */}
+      <div style={{ marginBottom: 12 }}>
         <label>Notes</label>
-        <textarea
-          style={input}
+        <input
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
+          style={input}
         />
       </div>
 
-      <h3 style={{ marginTop: 20 }}>Medicines</h3>
+      {/* Items */}
+      <h3>Medicines</h3>
 
-      {items.map((item, i) => (
-        <div key={i} style={{ display: "flex", gap: 10, marginBottom: 10 }}>
+      {items.map((item, index) => (
+        <div key={index} style={row}>
           <input
-            placeholder="Medicine"
-            style={input}
+            placeholder="Medicine Name"
             value={item.name}
-            onChange={(e) => handleChange(i, "name", e.target.value)}
-          />
-          <input
-            placeholder="Dosage"
+            onChange={(e) =>
+              handleChange(index, "name", e.target.value)
+            }
             style={input}
+          />
+
+          <input
+            placeholder="Dosage (1-0-1)"
             value={item.dosage}
-            onChange={(e) => handleChange(i, "dosage", e.target.value)}
-          />
-          <input
-            placeholder="Duration"
+            onChange={(e) =>
+              handleChange(index, "dosage", e.target.value)
+            }
             style={input}
+          />
+
+          <input
+            placeholder="Duration (5 days)"
             value={item.duration}
-            onChange={(e) => handleChange(i, "duration", e.target.value)}
+            onChange={(e) =>
+              handleChange(index, "duration", e.target.value)
+            }
+            style={input}
           />
         </div>
       ))}
@@ -123,6 +152,8 @@ export default function CreatePrescription() {
   );
 }
 
+/* ---------- STYLES ---------- */
+
 const input = {
   padding: 10,
   border: "1px solid #ccc",
@@ -130,10 +161,16 @@ const input = {
   width: "100%",
 };
 
+const row = {
+  display: "flex",
+  gap: 10,
+  marginBottom: 10,
+};
+
 const addBtn = {
   background: "#2563eb",
   color: "#fff",
-  padding: "6px 12px",
+  padding: "8px 12px",
   border: "none",
   borderRadius: 6,
 };
