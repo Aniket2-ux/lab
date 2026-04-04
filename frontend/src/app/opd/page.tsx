@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 
 export default function OPDPage() {
   const params = useSearchParams();
-  const router = useRouter();
+  const router = useRouter(); // ✅ FIX
 
   const clientId = params.get("clientId");
   const clientName = params.get("clientName");
@@ -15,14 +15,20 @@ export default function OPDPage() {
   useEffect(() => {
     if (!clientId) return;
 
-    fetch(`http://145.223.23.176:5000/api/visits/client/${clientId}`)
+    // ✅ FIX: get all visits, filter frontend
+    fetch("http://145.223.23.176:5000/api/visits")
       .then((res) => res.json())
-      .then((data) => setVisits(data))
+      .then((data) => {
+        const filtered = data.filter(
+          (v: any) => String(v.clientId) === String(clientId)
+        );
+        setVisits(filtered);
+      })
       .catch(console.error);
   }, [clientId]);
 
   return (
-    <div style={{ padding: 20 }}>
+    <div style={{ padding: 20, marginLeft: 240 }}>
       <h2>OPD / {clientName}</h2>
 
       <button
@@ -40,8 +46,11 @@ export default function OPDPage() {
         ) : (
           visits.map((v: any) => (
             <div key={v.id} style={card}>
-              <p>Visit ID: {v.id}</p>
-              <p>Date: {new Date(v.createdAt).toLocaleString()}</p>
+              <p><b>Visit ID:</b> {v.id}</p>
+              <p>
+                <b>Date:</b>{" "}
+                {new Date(v.createdAt).toLocaleString()}
+              </p>
 
               <button
                 style={smallBtn}
