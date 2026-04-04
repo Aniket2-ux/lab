@@ -2,8 +2,8 @@ const express = require("express");
 const router = express.Router();
 const { Op } = require("sequelize");
 
-const Prescription = require("../models/prescription"); // ✅ FIX casing
-const PrescriptionItem = require("../models/PrescriptionItem"); // ✅ NEW
+const Prescription = require("../models/prescription");
+const PrescriptionItem = require("../models/PrescriptionItem");
 
 /* =========================
    CREATE PRESCRIPTION (OPD)
@@ -18,7 +18,14 @@ router.post("/", async (req, res) => {
       items = [],
     } = req.body;
 
-    // 1. Create prescription
+    // 🔴 VALIDATION (IMPORTANT)
+    if (!visitId || !clientId) {
+      return res.status(400).json({
+        error: "visitId and clientId are required",
+      });
+    }
+
+    // 1️⃣ Create prescription
     const prescription = await Prescription.create({
       visitId,
       clientId,
@@ -26,26 +33,44 @@ router.post("/", async (req, res) => {
       notes,
     });
 
-    // 2. Create items (medicine + service)
-    const formattedItems = items.map((item) => ({
-      prescriptionId: prescription.id,
-      type: item.type,
-      name: item.name,
-      dosage: item.dosage,
-      duration: item.duration,
-      quantity: item.quantity,
-      price: item.price,
-    }));
+    // 2️⃣ Create items (only if exist)
+    if (items.length > 0) {
+      const formattedItems = items.map((item) => ({
+        prescriptionId: prescription.id,
+        type: item.type || null,
+        name: item.name || null,
+        dosage: item.dosage || null,
+        duration: item.duration || null,
+        quantity: item.quantity || null,
+        price: item.price || null,
+      }));
 
-    await PrescriptionItem.bulkCreate(formattedItems);
+      await PrescriptionItem.bulkCreate(formattedItems);
+    }
+
+    // 3️⃣ Fetch with items (RETURN CLEAN DATA)
+    const fullPrescription = await Prescription.findByPk(
+      prescription.id,
+      {
+        include: [
+          {
+            model: PrescriptionItem,
+            as: "items", // ⚠️ depends on your model relation
+          },
+        ],
+      }
+    );
 
     res.status(201).json({
       success: true,
-      prescription,
+      prescription: fullPrescription,
     });
   } catch (error) {
-    console.error("Error creating prescription:", error);
-    res.status(500).json({ error: "Error creating prescription" });
+    console.error("❌ Error creating prescription:", error);
+    res.status(500).json({
+      error: "Error creating prescription",
+      details: error.message,
+    });
   }
 });
 
@@ -58,18 +83,33 @@ router.get("/visit/:visitId", async (req, res) => {
 
     const prescription = await Prescription.findOne({
       where: { visitId },
-      include: [PrescriptionItem],
+      include: [
+        {
+          model: PrescriptionItem,
+          as: "items", // ⚠️ IMPORTANT
+        },
+      ],
+      order: [["createdAt", "DESC"]],
     });
+
+    if (!prescription) {
+      return res.status(404).json({
+        error: "Prescription not found",
+      });
+    }
 
     res.json(prescription);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Error fetching prescription" });
+    console.error("❌ Error fetching prescription:", err);
+    res.status(500).json({
+      error: "Error fetching prescription",
+      details: err.message,
+    });
   }
 });
 
 /* =========================
-   COUNT (UNCHANGED)
+   COUNT
 ========================= */
 router.get("/count", async (req, res) => {
   try {
@@ -90,13 +130,13 @@ router.get("/count", async (req, res) => {
 
     res.json({ totalCount, todayCount });
   } catch (err) {
-    console.error("Error counting prescriptions:", err);
+    console.error("❌ Error counting prescriptions:", err);
     res.status(500).json({ error: "Error counting prescriptions" });
   }
 });
 
 /* =========================
-   FOLLOWUPS (KEEP AS IS)
+   FOLLOWUPS
 ========================= */
 router.get("/followups", async (req, res) => {
   res.json([]);
