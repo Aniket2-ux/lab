@@ -42,6 +42,9 @@ app.use(express.json());
     console.warn(`⚠️ Model not loaded: ${model}`);
   }
 });
+// 🔥 FORCE LOAD (VERY IMPORTANT)
+require("./models/Prescription");
+require("./models/PrescriptionItem");
 
 /* =========================
    ROUTES
