@@ -43,7 +43,7 @@ app.use(express.json());
   }
 });
 // 🔥 FORCE LOAD (VERY IMPORTANT)
-require("./models/Prescription");
+require("./models/prescription");
 require("./models/PrescriptionItem");
 
 /* =========================
