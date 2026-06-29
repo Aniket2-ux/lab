@@ -714,7 +714,7 @@ function ClientDetailsDrawer({
 
         </div> {/* close inner content */}
       </div>   {/* close panel */}
-    </div>   {/* close overlay */ }
+    </div>   /* close overlay */ 
   );
 }
 
@@ -1593,6 +1593,7 @@ function LabeledInput({
         style={fieldInput}
       />
     </div>
+
   );
 }
 
