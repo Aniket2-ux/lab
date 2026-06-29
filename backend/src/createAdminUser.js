@@ -1,47 +1,62 @@
+// backend/src/createAdminUser.js
+
 require("dotenv").config();
 
 const bcrypt = require("bcryptjs");
 const sequelize = require("./db");
-require("./models/User");
+const User = require("./models/User");
 
-async function main() {
+(async () => {
   try {
+    console.log("🔌 Connecting to database...");
     await sequelize.authenticate();
+    console.log("✅ Database connected");
 
-    const User = sequelize.models.User;
+    const email = "admin@gddiagnosticlab.com";
+    const password = "admin@nepal987";
 
-    const email = "admin@gmail.com";
-    const password = "admin123";
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    const hash = await bcrypt.hash(password, 10);
-
+    // Find existing admin by old or new email
     let user = await User.findOne({
-      where: { email },
+      where: {
+        email: [
+          "admin@gmail.com",
+          "admin@gddiagnosticlab.com",
+        ],
+      },
     });
 
     if (user) {
-      user.password = hash;
       user.name = "Admin";
+      user.email = email;
+      user.password = hashedPassword;
       user.role = "admin";
+
       await user.save();
 
-      console.log("✅ Password updated");
+      console.log("✅ Admin user updated");
     } else {
-      await User.create({
+      user = await User.create({
         name: "Admin",
-        email,
-        password: hash,
+        email: email,
+        password: hashedPassword,
         role: "admin",
       });
 
-      console.log("✅ User created");
+      console.log("✅ Admin user created");
     }
+
+    console.log({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    });
 
     process.exit(0);
   } catch (err) {
-    console.error(err);
+    console.error("❌ Error:", err);
     process.exit(1);
   }
-}
-
-main();
+})();
