@@ -1,17 +1,15 @@
 "use client";
 
+import { Suspense, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useState } from "react";
 
-/* ---------- TYPES ---------- */
 type Item = {
   name: string;
   dosage: string;
   duration: string;
 };
 
-/* ---------- COMPONENT ---------- */
-export default function CreatePrescription() {
+function PrescriptionForm() {
   const params = useSearchParams();
   const router = useRouter();
 
@@ -22,22 +20,30 @@ export default function CreatePrescription() {
   const [notes, setNotes] = useState("");
 
   const [items, setItems] = useState<Item[]>([
-    { name: "", dosage: "", duration: "" },
+    {
+      name: "",
+      dosage: "",
+      duration: "",
+    },
   ]);
 
-  /* ---------- ADD ROW ---------- */
   const handleAddRow = () => {
-    setItems([...items, { name: "", dosage: "", duration: "" }]);
+    setItems([
+      ...items,
+      {
+        name: "",
+        dosage: "",
+        duration: "",
+      },
+    ]);
   };
 
-  /* ---------- REMOVE ROW ---------- */
   const handleRemoveRow = (index: number) => {
     const updated = [...items];
     updated.splice(index, 1);
     setItems(updated);
   };
 
-  /* ---------- UPDATE FIELD ---------- */
   const handleChange = (
     index: number,
     field: keyof Item,
@@ -48,7 +54,6 @@ export default function CreatePrescription() {
     setItems(updated);
   };
 
-  /* ---------- SAVE ---------- */
   const handleSave = async () => {
     if (!visitId || !clientId) {
       alert("Missing visit/client ID");
@@ -76,23 +81,21 @@ export default function CreatePrescription() {
       const data = await res.json();
 
       if (data.success) {
-        alert("Prescription created ✅");
+        alert("Prescription created");
         router.push(`/opd?clientId=${clientId}`);
       } else {
-        alert("Failed ❌");
+        alert("Failed");
       }
     } catch (err) {
       console.error(err);
-      alert("Server error ❌");
+      alert("Server error");
     }
   };
 
-  /* ---------- UI ---------- */
   return (
     <div style={{ padding: 20, maxWidth: 900, margin: "0 auto" }}>
-      <h2 style={{ marginBottom: 20 }}>Create Prescription</h2>
+      <h2>Create Prescription</h2>
 
-      {/* Diagnosis */}
       <div style={card}>
         <label style={label}>Diagnosis</label>
         <input
@@ -102,7 +105,6 @@ export default function CreatePrescription() {
         />
       </div>
 
-      {/* Notes */}
       <div style={card}>
         <label style={label}>Notes</label>
         <input
@@ -112,13 +114,12 @@ export default function CreatePrescription() {
         />
       </div>
 
-      {/* Medicines */}
       <div style={card}>
-        <h3 style={{ marginBottom: 10 }}>Medicines</h3>
+        <h3>Medicines</h3>
 
         <table style={table}>
           <thead>
-            <tr style={{ background: "#f1f5f9" }}>
+            <tr>
               <th style={th}>Medicine</th>
               <th style={th}>Dosage</th>
               <th style={th}>Duration</th>
@@ -131,41 +132,38 @@ export default function CreatePrescription() {
               <tr key={index}>
                 <td>
                   <input
-                    placeholder="Paracetamol"
+                    style={input}
                     value={item.name}
                     onChange={(e) =>
                       handleChange(index, "name", e.target.value)
                     }
-                    style={input}
                   />
                 </td>
 
                 <td>
                   <input
-                    placeholder="1-0-1"
+                    style={input}
                     value={item.dosage}
                     onChange={(e) =>
                       handleChange(index, "dosage", e.target.value)
                     }
-                    style={input}
                   />
                 </td>
 
                 <td>
                   <input
-                    placeholder="5 days"
+                    style={input}
                     value={item.duration}
                     onChange={(e) =>
                       handleChange(index, "duration", e.target.value)
                     }
-                    style={input}
                   />
                 </td>
 
                 <td>
                   <button
-                    onClick={() => handleRemoveRow(index)}
                     style={deleteBtn}
+                    onClick={() => handleRemoveRow(index)}
                   >
                     Delete
                   </button>
@@ -175,19 +173,25 @@ export default function CreatePrescription() {
           </tbody>
         </table>
 
-        <button onClick={handleAddRow} style={addBtn}>
+        <button style={addBtn} onClick={handleAddRow}>
           + Add Medicine
         </button>
       </div>
 
-      <button onClick={handleSave} style={saveBtn}>
+      <button style={saveBtn} onClick={handleSave}>
         SAVE PRESCRIPTION
       </button>
     </div>
   );
 }
 
-/* ---------- STYLES ---------- */
+export default function CreatePrescription() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <PrescriptionForm />
+    </Suspense>
+  );
+}
 
 const card = {
   marginBottom: 16,
