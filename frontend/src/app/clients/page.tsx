@@ -94,17 +94,17 @@ export default function ClientsPage() {
   // ---- fetch all clients ----
   useEffect(() => {
     const load = async () => {
-    try {
-  setLoading(true);
+      try {
+        setLoading(true);
 
-  const res = await fetch(`${API_BASE}/api/clients`);
+        const res = await fetch(`${API_BASE}/api/clients`);
 
-  if (!res.ok) throw new Error("HTTP " + res.status);
+        if (!res.ok) throw new Error("HTTP " + res.status);
 
-  const data: Client[] = await res.json();
-  setClients(data);
-} catch (err){
-      
+        const data: Client[] = await res.json();
+        setClients(data);
+      } catch (err) {
+
         console.error("Failed to load clients", err);
       } finally {
         setLoading(false);
@@ -469,25 +469,25 @@ function ClientDetailsDrawer({
   onClose: () => void;
   onCreatePrescription: () => void;
 }) {
-const [visits, setVisits] = useState<any[]>([]);
-const [prescriptions, setPrescriptions] = useState<any[]>([]);
-const [selectedVisitId, setSelectedVisitId] = useState<number | null>(null);
+  const [visits, setVisits] = useState<any[]>([]);
+  const [prescriptions, setPrescriptions] = useState<any[]>([]);
+  const [selectedVisitId, setSelectedVisitId] = useState<number | null>(null);
   const ageText = client.age ? `${client.age} Years` : "";
   const genderText = client.gender || "";
   useEffect(() => {
-  fetch(`${API_BASE}/api/visits/client/${client.id}`)
-    .then(res => res.json())
-    .then(setVisits)
-    .catch(err => console.error(err));
-}, [client.id]);
-useEffect(() => {
-  if (!selectedVisitId) return;
+    fetch(`${API_BASE}/api/visits/client/${client.id}`)
+      .then(res => res.json())
+      .then(setVisits)
+      .catch(err => console.error(err));
+  }, [client.id]);
+  useEffect(() => {
+    if (!selectedVisitId) return;
 
-  fetch(`${API_BASE}/api/prescriptions/visit/${selectedVisitId}`)
-    .then(res => res.json())
-    .then(setPrescriptions)
-    .catch(err => console.error(err));
-}, [selectedVisitId]);
+    fetch(`${API_BASE}/api/prescriptions/visit/${selectedVisitId}`)
+      .then(res => res.json())
+      .then(setPrescriptions)
+      .catch(err => console.error(err));
+  }, [selectedVisitId]);
 
   return (
     <div
@@ -530,7 +530,7 @@ useEffect(() => {
               cursor: "pointer",
             }}
           >
-            ×
+            &times;
           </button>
         </div>
 
@@ -572,150 +572,152 @@ useEffect(() => {
           <span>Not sent yet</span>
         </div>
 
-<div style={{ marginBottom: 20, display: "flex", gap: 8 }}>
+        <div style={{ marginBottom: 20, display: "flex", gap: 8 }}>
 
-  {/* CREATE PRESCRIPTION */}
-  <button
-    onClick={onCreatePrescription}
-    style={{
-      padding: "8px 14px",
-      borderRadius: 4,
-      border: "1px solid #0b7a53",
-      background: "#e6f4ef",
-      color: "#0b7a53",
-      fontSize: 13,
-      cursor: "pointer",
-      fontWeight: 600,
-    }}
-  >
-    CREATE PRESCRIPTION ▾
-  </button>
+          {/* CREATE PRESCRIPTION */}
+          <button
+            onClick={onCreatePrescription}
+            style={{
+              padding: "8px 14px",
+              borderRadius: 4,
+              border: "1px solid #0b7a53",
+              background: "#e6f4ef",
+              color: "#0b7a53",
+              fontSize: 13,
+              cursor: "pointer",
+              fontWeight: 600,
+            }}
+          >
+            CREATE PRESCRIPTION ▾
+          </button>
 
-  {/* CREATE VISIT */}
-  <button
-    onClick={async () => {
-      await fetch(`${API_BASE}/api/visits`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          clientId: client.id,
-          notes: "visit",
-        }),
-      });
+          {/* CREATE VISIT */}
+          <button
+            onClick={async () => {
+              await fetch(`${API_BASE}/api/visits`, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  clientId: client.id,
+                  notes: "visit",
+                }),
+              });
 
-      const res = await fetch(`${API_BASE}/api/visits/client/${client.id}`);
-      const data = await res.json();
-      setVisits(data);
-    }}
-    style={{
-      padding: "8px 14px",
-      borderRadius: 4,
-      border: "1px solid #2563eb",
-      background: "#eff6ff",
-      color: "#2563eb",
-      fontSize: 13,
-      cursor: "pointer",
-      fontWeight: 600,
-    }}
-  >
-    CREATE VISIT
-  </button>
+              const res = await fetch(`${API_BASE}/api/visits/client/${client.id}`);
+              const data = await res.json();
+              setVisits(data);
+            }}
+            style={{
+              padding: "8px 14px",
+              borderRadius: 4,
+              border: "1px solid #2563eb",
+              background: "#eff6ff",
+              color: "#2563eb",
+              fontSize: 13,
+              cursor: "pointer",
+              fontWeight: 600,
+            }}
+          >
+            CREATE VISIT
+          </button>
 
-</div>
+        </div>
 
-{/* TABS */}
-<div
-  style={{
-    display: "flex",
-    gap: 24,
-    fontSize: 13,
-    borderBottom: "1px solid #e5e7eb",
-    paddingBottom: 6,
-    marginBottom: 10,
-  }}
->
+        {/* TABS */}
+        <div
+          style={{
+            display: "flex",
+            gap: 24,
+            fontSize: 13,
+            borderBottom: "1px solid #e5e7eb",
+            paddingBottom: 6,
+            marginBottom: 10,
+          }}
+        >
 
-  <span style={{ fontWeight: 600, borderBottom: "2px solid #0b7a53" }}>
-    Visits
-  </span>
-  <span style={{ color: "#6b7280" }}>Bills</span>
-  <span style={{ color: "#6b7280" }}>Prescriptions</span>
-  <span style={{ color: "#6b7280" }}>Vitals</span>
-  <span style={{ color: "#6b7280" }}>Labs</span>
-  <span style={{ color: "#6b7280" }}>Reports</span>
-</div>
+          <span style={{ fontWeight: 600, borderBottom: "2px solid #0b7a53" }}>
+            Visits
+          </span>
+          <span style={{ color: "#6b7280" }}>Bills</span>
+          <span style={{ color: "#6b7280" }}>Prescriptions</span>
+          <span style={{ color: "#6b7280" }}>Vitals</span>
+          <span style={{ color: "#6b7280" }}>Labs</span>
+          <span style={{ color: "#6b7280" }}>Reports</span>
+        </div>
 
-<div style={{ fontSize: 13, color: "#6b7280" }}>
+        <div style={{ fontSize: 13, color: "#6b7280" }}>
 
-  {/* VISITS */}
-  {visits.length === 0 ? (
-    <div>No visits yet…</div>
-  ) : (
-    visits.map((v: any) => (
+          {/* VISITS */}
+          {visits.length === 0 ? (
+            <div>No visits yet…</div>
+          ) : (
+            visits.map((v: any) => (
+              <div
+                key={v.id}
+                onClick={() => setSelectedVisitId(v.id)}
+                style={{
+                  padding: "6px 0",
+                  cursor: "pointer",
+                  borderBottom: "1px solid #eee",
+                  background: selectedVisitId === v.id ? "#e0f2fe" : "transparent"
+                }}
+              >
+                Visit #{v.id} — {new Date(v.createdAt).toLocaleString()}
+              </div>
+            ))
+          )}
+
+          {/* PRESCRIPTIONS */}
+          <div style={{ marginTop: 20 }}>
+            <h4>Prescriptions</h4>
+
+            {!selectedVisitId ? (
+  <div style={{ fontSize: 13, color: "#6b7280" }}>
+    Click a visit to see prescriptions
+  </div>
+) : prescriptions.length === 0 ? (
+  <div style={{ fontSize: 13, color: "#6b7280" }}>
+    No prescriptions
+  </div>
+) : (
+  <>
+    {prescriptions.map((p: any) => (
       <div
-        key={v.id}
-        onClick={() => setSelectedVisitId(v.id)}
+        key={p.id}
         style={{
-          padding: "6px 0",
-          cursor: "pointer",
-          borderBottom: "1px solid #eee",
-          background: selectedVisitId === v.id ? "#e0f2fe" : "transparent"
+          border: "1px solid #ddd",
+          padding: 10,
+          marginBottom: 10,
+          borderRadius: 6,
         }}
       >
-        Visit #{v.id} — {new Date(v.createdAt).toLocaleString()}
-      </div>
-    ))
-  )}
+        <div style={{ fontWeight: 600 }}>
+          {new Date(p.createdAt).toLocaleString()}
+        </div>
 
-  {/* PRESCRIPTIONS */}
-  <div style={{ marginTop: 20 }}>
-    <h4>Prescriptions</h4>
-
-    {!selectedVisitId ? (
-      <div style={{ fontSize: 13, color: "#6b7280" }}>
-        Click a visit to see prescriptions
+        <ul style={{ marginTop: 6 }}>
+          {(p.items || p.PrescriptionItems || []).map(
+            (item: any, i: number) => (
+              <li key={i}>
+                {item.name} — {item.dosage} — {item.duration}
+              </li>
+            )
+          )}
+        </ul>
       </div>
-    ) : prescriptions.length === 0 ? (
-      <div style={{ fontSize: 13, color: "#6b7280" }}>
-        No prescriptions
-      </div>
-    ) : (
-<>
-  {prescriptions.map((p: any) => (
-    <div
-      key={p.id}  
-      style={{
-        border: "1px solid #ddd",
-        padding: 10,
-        marginBottom: 10,
-        borderRadius: 6,
-      }}
-    >
-      <div style={{ fontWeight: 600 }}>
-        {new Date(p.createdAt).toLocaleString()}
-      </div>
+    ))}
+  </>
+)}
+          </div>
 
-      <ul style={{ marginTop: 6 }}>
-        {(p.items || p.PrescriptionItems || []).map((item: any, i: number) => (
-          <li key={i}>
-            {item.name} — {item.dosage} — {item.duration}
-          </li>
-        ))}
-      </ul>
-    </div>
-   ))}
-     </>
-    )}
-     </div>
-
-   </div> {/* close inner content */}
+        </div> {/* close inner content */}
       </div>   {/* close panel */}
-    </div>   {/* close overlay */}
+    </div>   {/* close overlay */ }
   );
 }
- 
+
 /* ---------------- Create client drawer (big form) ---------------- */
 
 function CreateClientDrawer({
@@ -789,20 +791,20 @@ function CreateClientDrawer({
       setError(null);
 
       // Only send fields that backend knows about
-     const res = await fetch(`${API_BASE}/api/clients`, {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    fullName: form.fullName,
-    phone: form.phone || form.additionalPhone || null,
-    email: form.email || null,
-    age: form.age ? Number(form.age) : null,
-    gender: form.gender || null,
-    address: form.address || null,
-    knownFrom: form.knownFrom || null,
-    internalNotes: form.internalNotes || null,
-  }),
-});
+      const res = await fetch(`${API_BASE}/api/clients`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fullName: form.fullName,
+          phone: form.phone || form.additionalPhone || null,
+          email: form.email || null,
+          age: form.age ? Number(form.age) : null,
+          gender: form.gender || null,
+          address: form.address || null,
+          knownFrom: form.knownFrom || null,
+          internalNotes: form.internalNotes || null,
+        }),
+      });
 
 
       if (!res.ok) throw new Error("HTTP " + res.status);
