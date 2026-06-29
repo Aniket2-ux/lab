@@ -30,6 +30,13 @@ export default function CreatePrescription() {
     setItems([...items, { name: "", dosage: "", duration: "" }]);
   };
 
+  /* ---------- REMOVE ROW ---------- */
+  const handleRemoveRow = (index: number) => {
+    const updated = [...items];
+    updated.splice(index, 1);
+    setItems(updated);
+  };
+
   /* ---------- UPDATE FIELD ---------- */
   const handleChange = (
     index: number,
@@ -82,12 +89,12 @@ export default function CreatePrescription() {
 
   /* ---------- UI ---------- */
   return (
-    <div style={{ padding: 20 }}>
-      <h2>Create Prescription</h2>
+    <div style={{ padding: 20, maxWidth: 900, margin: "0 auto" }}>
+      <h2 style={{ marginBottom: 20 }}>Create Prescription</h2>
 
       {/* Diagnosis */}
-      <div style={{ marginBottom: 12 }}>
-        <label>Diagnosis</label>
+      <div style={card}>
+        <label style={label}>Diagnosis</label>
         <input
           value={diagnosis}
           onChange={(e) => setDiagnosis(e.target.value)}
@@ -96,8 +103,8 @@ export default function CreatePrescription() {
       </div>
 
       {/* Notes */}
-      <div style={{ marginBottom: 12 }}>
-        <label>Notes</label>
+      <div style={card}>
+        <label style={label}>Notes</label>
         <input
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
@@ -105,45 +112,73 @@ export default function CreatePrescription() {
         />
       </div>
 
-      {/* Items */}
-      <h3>Medicines</h3>
+      {/* Medicines */}
+      <div style={card}>
+        <h3 style={{ marginBottom: 10 }}>Medicines</h3>
 
-      {items.map((item, index) => (
-        <div key={index} style={row}>
-          <input
-            placeholder="Medicine Name"
-            value={item.name}
-            onChange={(e) =>
-              handleChange(index, "name", e.target.value)
-            }
-            style={input}
-          />
+        <table style={table}>
+          <thead>
+            <tr style={{ background: "#f1f5f9" }}>
+              <th style={th}>Medicine</th>
+              <th style={th}>Dosage</th>
+              <th style={th}>Duration</th>
+              <th style={th}>Action</th>
+            </tr>
+          </thead>
 
-          <input
-            placeholder="Dosage (1-0-1)"
-            value={item.dosage}
-            onChange={(e) =>
-              handleChange(index, "dosage", e.target.value)
-            }
-            style={input}
-          />
+          <tbody>
+            {items.map((item, index) => (
+              <tr key={index}>
+                <td>
+                  <input
+                    placeholder="Paracetamol"
+                    value={item.name}
+                    onChange={(e) =>
+                      handleChange(index, "name", e.target.value)
+                    }
+                    style={input}
+                  />
+                </td>
 
-          <input
-            placeholder="Duration (5 days)"
-            value={item.duration}
-            onChange={(e) =>
-              handleChange(index, "duration", e.target.value)
-            }
-            style={input}
-          />
-        </div>
-      ))}
+                <td>
+                  <input
+                    placeholder="1-0-1"
+                    value={item.dosage}
+                    onChange={(e) =>
+                      handleChange(index, "dosage", e.target.value)
+                    }
+                    style={input}
+                  />
+                </td>
 
-      <button onClick={handleAddRow} style={addBtn}>
-        + Add Medicine
-      </button>
+                <td>
+                  <input
+                    placeholder="5 days"
+                    value={item.duration}
+                    onChange={(e) =>
+                      handleChange(index, "duration", e.target.value)
+                    }
+                    style={input}
+                  />
+                </td>
 
-      <br /><br />
+                <td>
+                  <button
+                    onClick={() => handleRemoveRow(index)}
+                    style={deleteBtn}
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        <button onClick={handleAddRow} style={addBtn}>
+          + Add Medicine
+        </button>
+      </div>
 
       <button onClick={handleSave} style={saveBtn}>
         SAVE PRESCRIPTION
@@ -154,17 +189,37 @@ export default function CreatePrescription() {
 
 /* ---------- STYLES ---------- */
 
+const card = {
+  marginBottom: 16,
+  padding: 16,
+  border: "1px solid #e5e7eb",
+  borderRadius: 10,
+  background: "#fff",
+};
+
+const label = {
+  display: "block",
+  marginBottom: 6,
+  fontWeight: 500,
+};
+
 const input = {
-  padding: 10,
+  padding: 8,
   border: "1px solid #ccc",
   borderRadius: 6,
   width: "100%",
 };
 
-const row = {
-  display: "flex",
-  gap: 10,
+const table = {
+  width: "100%",
+  borderCollapse: "collapse" as const,
   marginBottom: 10,
+};
+
+const th = {
+  padding: 8,
+  border: "1px solid #e5e7eb",
+  textAlign: "left" as const,
 };
 
 const addBtn = {
@@ -173,12 +228,25 @@ const addBtn = {
   padding: "8px 12px",
   border: "none",
   borderRadius: 6,
+  cursor: "pointer",
+};
+
+const deleteBtn = {
+  background: "#dc2626",
+  color: "#fff",
+  padding: "6px 10px",
+  border: "none",
+  borderRadius: 6,
+  cursor: "pointer",
 };
 
 const saveBtn = {
   background: "#16a34a",
   color: "#fff",
-  padding: "10px 16px",
+  padding: "12px 18px",
   border: "none",
-  borderRadius: 6,
+  borderRadius: 8,
+  cursor: "pointer",
+  width: "100%",
+  fontSize: 16,
 };

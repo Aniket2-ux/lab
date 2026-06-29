@@ -469,15 +469,25 @@ function ClientDetailsDrawer({
   onClose: () => void;
   onCreatePrescription: () => void;
 }) {
-  const [visits, setVisits] = useState<any[]>([]);
+const [visits, setVisits] = useState<any[]>([]);
+const [prescriptions, setPrescriptions] = useState<any[]>([]);
+const [selectedVisitId, setSelectedVisitId] = useState<number | null>(null);
   const ageText = client.age ? `${client.age} Years` : "";
   const genderText = client.gender || "";
   useEffect(() => {
-  fetch(`${API_BASE}/api/visits/${client.id}`)
+  fetch(`${API_BASE}/api/visits/client/${client.id}`)
     .then(res => res.json())
     .then(setVisits)
     .catch(err => console.error(err));
 }, [client.id]);
+useEffect(() => {
+  if (!selectedVisitId) return;
+
+  fetch(`${API_BASE}/api/prescriptions/visit/${selectedVisitId}`)
+    .then(res => res.json())
+    .then(setPrescriptions)
+    .catch(err => console.error(err));
+}, [selectedVisitId]);
 
   return (
     <div
@@ -595,7 +605,7 @@ function ClientDetailsDrawer({
         }),
       });
 
-      const res = await fetch(`${API_BASE}/api/visits/${client.id}`);
+      const res = await fetch(`${API_BASE}/api/visits/client/${client.id}`);
       const data = await res.json();
       setVisits(data);
     }}
@@ -638,23 +648,74 @@ function ClientDetailsDrawer({
 </div>
 
 <div style={{ fontSize: 13, color: "#6b7280" }}>
-  {visits.length === 0 ? (
-      <div>No visits yet…</div>
-    
 
+  {/* VISITS */}
+  {visits.length === 0 ? (
+    <div>No visits yet…</div>
   ) : (
     visits.map((v: any) => (
-      <div key={v.id} style={{ padding: "6px 0" }}>
-        {new Date(v.date).toLocaleString()}
+      <div
+        key={v.id}
+        onClick={() => setSelectedVisitId(v.id)}
+        style={{
+          padding: "6px 0",
+          cursor: "pointer",
+          borderBottom: "1px solid #eee",
+          background: selectedVisitId === v.id ? "#e0f2fe" : "transparent"
+        }}
+      >
+        Visit #{v.id} — {new Date(v.createdAt).toLocaleString()}
       </div>
     ))
   )}
-</div>
+
+  {/* PRESCRIPTIONS */}
+  <div style={{ marginTop: 20 }}>
+    <h4>Prescriptions</h4>
+
+    {!selectedVisitId ? (
+      <div style={{ fontSize: 13, color: "#6b7280" }}>
+        Click a visit to see prescriptions
       </div>
+    ) : prescriptions.length === 0 ? (
+      <div style={{ fontSize: 13, color: "#6b7280" }}>
+        No prescriptions
+      </div>
+    ) : (
+<>
+  {prescriptions.map((p: any) => (
+    <div
+      key={p.id}  
+      style={{
+        border: "1px solid #ddd",
+        padding: 10,
+        marginBottom: 10,
+        borderRadius: 6,
+      }}
+    >
+      <div style={{ fontWeight: 600 }}>
+        {new Date(p.createdAt).toLocaleString()}
+      </div>
+
+      <ul style={{ marginTop: 6 }}>
+        {(p.items || p.PrescriptionItems || []).map((item: any, i: number) => (
+          <li key={i}>
+            {item.name} — {item.dosage} — {item.duration}
+          </li>
+        ))}
+      </ul>
     </div>
+   ))}
+     </>
+    )}
+     </div>
+
+   </div> {/* close inner content */}
+      </div>   {/* close panel */}
+    </div>   {/* close overlay */}
   );
 }
-
+ 
 /* ---------------- Create client drawer (big form) ---------------- */
 
 function CreateClientDrawer({
